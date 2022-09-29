@@ -7,3 +7,9 @@ object pepita {
 	method image() = "pepita.png"
 
 }
+
+object fireball {
+  var property position = game.origin()
+
+  method image() = "Fireball.png"
+}

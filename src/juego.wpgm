@@ -1,8 +1,14 @@
 import wollok.game.*
-import pepita.*
+import logica.*
+import escenarios.*
 
 program juego {
-	game.title("Juego Base")
-	game.addVisual(pepita)
+	engine.configuracionInicial()
+	engine.configurarTeclas()
+	// engine.configurarAcciones()
+	escenario.cargarPersonajes()
 	game.start()
+	
 }
+
+
