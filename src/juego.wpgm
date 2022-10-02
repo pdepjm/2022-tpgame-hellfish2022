@@ -1,14 +1,12 @@
 import wollok.game.*
-import logica.*
-import escenarios.*
+import allGame.*
 
 program juego {
-	engine.configuracionInicial()
-	engine.configurarTeclas()
-	// engine.configurarAcciones()
-	escenario.cargarPersonajes()
-	game.start()
+	engine.startSetting()
+	engine.keysSetting()
 	
+	scenario.load()
+	game.start()
 }
 
 
