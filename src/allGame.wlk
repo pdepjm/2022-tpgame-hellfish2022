@@ -1,19 +1,19 @@
 import wollok.game.*
 
 object up {
-	method nextPosition(pos) = pos.up(1) 	
+	method nextPosition(pos) = if(scenario.estaAdentro(pos.up(1))) pos.up(1) else pos	
 }
 
 object right {
-	method nextPosition(pos) = pos.right(1) 	
+	method nextPosition(pos) = if(scenario.estaAdentro(pos.right(1))) pos.right(1) else pos
 
 }
 object left {
-	method nextPosition(pos) = pos.left(1) 	
+	method nextPosition(pos) = if(scenario.estaAdentro(pos.left(1))) pos.left(1) else pos 	
 }
 
 object down {
-	method nextPosition(pos) = pos.down(1) 	
+	method nextPosition(pos) = if(scenario.estaAdentro(pos.down(1))) pos.down(1) else pos 		
 }
 
 object engine {
@@ -38,10 +38,11 @@ object random {
 }
 
 object scenario {
-	// const image = ""
 	const playerBasePosition = game.at(game.center().x() - game.width() / 3, game.center().y())
 	const bossBasePosition = game.at(game.center().x() + game.width() / 3, game.center().y())
 	const hpBoss = random.natural(0, 250)
+	
+	method estaAdentro(posicion) = posicion.x().between(3,game.width()-3) && posicion.y().between(5,game.height()-10) 
 	
 	method load(){
 		player.startAt(playerBasePosition)
@@ -86,6 +87,7 @@ class Boss {
 	method dead(){
 		game.say(self, "Volvere mas fuerte...")
 		game.schedule(5000, {game.removeVisual(self)})
+		game.schedule(7500, {puerta.aparecer()})
 	}
 	
 	method animateHit(){
@@ -188,4 +190,23 @@ class Bullet {
 	}
 	
 	method bulletCrash(damage) {}
+}
+
+
+object puerta{
+	
+	var property position = game.at(game.center().x() + game.width() / 3, game.center().y())
+	
+	method image() = "puerta.png"
+	
+	method position() = position
+	
+	method aparecer() {
+		game.addVisual(self)
+		game.whenCollideDo(player,{self.ganar()})
+	}
+	
+	method ganar() {
+		game.say(player,"GANE! SOY EL REY DEL INFRAMUNDO!")
+	}
 }

@@ -4,7 +4,7 @@ import allGame.*
 program juego {
 	engine.startSetting()
 	engine.keysSetting()
-	
+	game.boardGround("fondo1.png")
 	scenario.load()
 	game.start()
 }
