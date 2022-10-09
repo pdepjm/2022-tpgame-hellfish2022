@@ -3,7 +3,6 @@ import allGame.*
 
 program juego {
 	engine.startSetting()
-	engine.keysSetting()
 	scenario.load()
 	game.start()
 }

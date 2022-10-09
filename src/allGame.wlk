@@ -1,13 +1,27 @@
 import wollok.game.*
 
+// Utils
+object random {
+	method natural(from, to) = from.randomUpTo(to).truncate(0)
+	method number() = self.natural(1, 10000000)
+}
+
+class CenterMessage {
+	var message
+	method position() = game.center()
+	method text() = message
+	method textColor() = "000000FF"
+}
+
+// Directions
 object up {
 	method nextPosition(pos) = pos.up(1)
 }
 
 object right {
 	method nextPosition(pos) = pos.right(1)
-
 }
+
 object left {
 	method nextPosition(pos) = pos.left(1)
 }
@@ -16,6 +30,7 @@ object down {
 	method nextPosition(pos) = pos.down(1)	
 }
 
+// Game Start / Settings
 object engine {
 	method startSetting() {
 		game.title("HellHead") // HellFish
@@ -23,7 +38,7 @@ object engine {
 		game.height(25)  
 		game.cellSize(30) 
 	}
-	method keysSetting() {
+	method keysSettingPlayer(player) {
 		// keyboard.w().onPressDo({player.goTo(up)})
 		keyboard.a().onPressDo({player.goTo(left)}) 
 		// keyboard.s().onPressDo({player.goTo(down)}) 
@@ -34,11 +49,7 @@ object engine {
 }
 
 
-object random {
-	method natural(from, to) = from.randomUpTo(to).truncate(0)
-	method number() = self.natural(1, 10000000)
-}
-
+// Scenario
 object scenario {
 	const playerBasePosition = game.at(game.center().x() - game.width() / 3, game.center().y())
 	const bossBasePosition = game.at(game.center().x() + game.width() / 3, game.center().y())
@@ -56,19 +67,27 @@ object scenario {
 	
 	method calculateBossLife() = random.natural(0, 200 * dificulty)
 	
+	method setGround(){
+		game.boardGround("fondo1.png")
+	}
+	
 	method load(){
-		player.startAt(playerBasePosition)
+		self.setGround()
+		
+		const player = new Player(hp = 100, position = playerBasePosition)
 		player.setWeapon(new Weapon(damage = 10, buff = 2))
+		engine.keysSettingPlayer(player)
 		game.addVisual(player)
 		
-		const boss = new Boss(hp = self.calculateBossLife(), position = bossBasePosition, dificulty = dificulty)
-		boss.startAt(bossBasePosition)
+		const boss = new Boss(
+			hp = self.calculateBossLife(),
+			position = bossBasePosition,
+			dificulty = dificulty
+		)
 		boss.setWeapon(new Weapon(damage = 10, buff = 2))
 		boss.randomImage()
 		game.addVisual(boss)
 		boss.start()
-		
-		game.boardGround("fondo1.png")
 	}
 	
 	method end(){
@@ -81,19 +100,37 @@ object scenario {
 	}
 }
 
-class CenterMessage {
-	var message
-	method position() = game.center()
-	method text() = message
-	method textColor() = "000000FF"
-}
-
-class Boss {
+// Characters
+class Character {
 	var hp
 	var weapon = null
+	var property position
+	
+	method setWeapon(newWeapon) {weapon = newWeapon}
+	
+	method die()
+	
+	method alive() = hp > 0
+	
+	method attack()
+	
+	method bulletCrash(damage) { self.removeLife(damage) }
+	
+	method removeLife(mount) {
+		hp = (hp - mount).max(0)
+		if (self.alive().negate()){
+			self.die()
+		} else {
+			game.say(self, hp.toString())
+		}
+	}
+	
+	method win()
+}
+
+class Boss inherits Character {
 	const dificulty // Dificulty 1 2 3
 	var image = null
-	var property position
 	const bosses = ["Boss_1.png", "Boss_2.png"]
 	
 	// Image Boss
@@ -107,7 +144,7 @@ class Boss {
 		game.onTick(750, "autoAttack", {self.autoAttack()})
 	}
 	
-	method attack() {
+	override method attack() {
 		weapon.fire(position.left(1), left)
 	}
 	
@@ -118,86 +155,35 @@ class Boss {
 		} 
 	}
 	
-	// Weapon
-	method setWeapon(newWeapon) {weapon = newWeapon}
-	
 	// Life
-	method removeLife(mount) {
-		hp = (hp - mount).max(0)
-		if (self.alive().negate()) {
-			self.die()
-		} else {
-			// self.animateHit()
-		}
-		game.say(self, hp.toString())
-	}
-	
-	method alive() = hp > 0
-	
-	method die(){
+	override method die(){
 		game.removeTickEvent("autoAttack")
 		game.say(self, "Volvere mas fuerte...")
 		game.schedule(5000, {
 			game.removeVisual(self)
-			puerta.aparecer()
+			door.spawn()
 		})
 	}
 	
-	method animateHit(){
-		game.removeVisual(self)
-		game.schedule(250, {game.addVisual(self)})
-		game.schedule(500, {game.removeVisual(self)})
-		game.schedule(750, {game.addVisual(self)})
-		game.schedule(1000, {game.removeVisual(self)})
-		game.schedule(1250, {game.addVisual(self)})
-	}
-	
-	// Position
-	method startAt(basePosition) {
-		position = basePosition
-	}
-	
-	// Polimorfismo
-	method bulletCrash(damage){
-		self.removeLife(damage)
-	}
+	override method win() {}
 }
 
-
-object player {
-	var hp = 100
-	var weapon = null
-	
-	var property position
-	
+class Player inherits Character {
 	// Image Character
 	method image() = "Character.png"
 	
-	// Life
-	method removeLife(mount) {
-		hp = (hp - mount).max(0)
-		game.say(self, hp.toString())
-	}
 	
-	method alive() = hp > 0
-	
-	method die(){
+	override method die(){
 		game.say(self, "Zzzzzz GG NO TEAM")
 		game.schedule(2000, {scenario.end()})
 	}
 	
-	// Weapon
-	method setWeapon(newWeapon) {weapon = newWeapon}
 	
-	method attack() {
+	override method attack() {
 		weapon.fire(position.right(1), right)
 	}
 	
-	// Position
-	method startAt(basePosition) {
-		position = basePosition
-	}
-	
+
 	method goTo(dir) {
 		if( scenario.estaAdentro(dir.nextPosition(position)) ){
 			position = dir.nextPosition(position)
@@ -209,15 +195,15 @@ object player {
 		game.schedule(500, {position = position.down(3).right(1)})
 	}
 	
-	// Polimorfismo
-	method bulletCrash(damage){
-		self.removeLife(damage)
-		if (self.alive().negate()){
-			self.die()
-		}
+	override method win() {
+		game.removeVisual(self)
+		game.say(door, "GANE! SOY EL MEJOR!")
+		game.schedule(2000, {scenario.end()})
 	}
 }
 
+// Misc
+// Weapon and Bullet
 class Weapon {
 	const damage
 	const buff
@@ -260,7 +246,6 @@ class Bullet {
 	
 	method unicID() = "bullet" + id.toString()
 	
-	// Issue 1 - La bala no desaparece en onCollide
 	method move() {
 		if (self.onLimit().negate()){
 			position = orientation.nextPosition(position)
@@ -279,24 +264,20 @@ class Bullet {
 	method bulletCrash(_) {
 		self.destroy()
 	}
+	
+	method win() {}
 }
 
-
-object puerta{
-	
+// Door - WIN
+object door{
 	var property position = game.at(game.center().x() + game.width() / 3, game.center().y())
 	
 	method image() = "CaveDoor.png"
 	
 	method position() = position
 	
-	method aparecer() {
+	method spawn() {
 		game.addVisual(self)
-		game.onCollideDo(player, {_ => self.ganar()})
-	}
-	
-	method ganar() {
-		game.say(self, "GANE! SOY EL MEJOR!")
-		game.schedule(5000, {scenario.end()})
+		game.onCollideDo(self, {anything => anything.win()})
 	}
 }
