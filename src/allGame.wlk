@@ -36,12 +36,13 @@ object engine {
 
 object random {
 	method natural(from, to) = from.randomUpTo(to).truncate(0)
+	method number() = self.natural(1, 10000000)
 }
 
 object scenario {
 	const playerBasePosition = game.at(game.center().x() - game.width() / 3, game.center().y())
 	const bossBasePosition = game.at(game.center().x() + game.width() / 3, game.center().y())
-	const hpBoss = random.natural(0, 250)
+	const dificulty = 1
 	
 	const xMin = 3
 	const xMax = game.width() - 3
@@ -53,16 +54,17 @@ object scenario {
 	method limitX(positionX) = positionX.between(xMin, xMax)
 	method limitY(positionY) = positionY.between(yMin, yMax)
 	
+	method calculateBossLife() = random.natural(0, 200 * dificulty)
 	
 	method load(){
 		player.startAt(playerBasePosition)
 		player.setWeapon(new Weapon(damage = 10, buff = 2))
 		game.addVisual(player)
 		
-		const boss = new Boss(hp = hpBoss, position = bossBasePosition, dificulty = 3)
-		boss.setWeapon(new Weapon(damage = 10, buff = 2))
+		const boss = new Boss(hp = self.calculateBossLife(), position = bossBasePosition, dificulty = dificulty)
 		boss.startAt(bossBasePosition)
-		boss.randomBoss()
+		boss.setWeapon(new Weapon(damage = 10, buff = 2))
+		boss.randomImage()
 		game.addVisual(boss)
 		boss.start()
 		
@@ -88,16 +90,16 @@ class CenterMessage {
 
 class Boss {
 	var hp
-	var property position
-	const bosses = ["Boss_1.png", "Boss_2.png"]
-	var image = null
 	var weapon = null
 	const dificulty // Dificulty 1 2 3
+	var image = null
+	var property position
+	const bosses = ["Boss_1.png", "Boss_2.png"]
 	
 	// Image Boss
 	method image() = image
 	
-	method randomBoss() {
+	method randomImage() {
 		image = bosses.get(random.natural(0, bosses.size() - 1))
 	}
 	
@@ -123,7 +125,7 @@ class Boss {
 	method removeLife(mount) {
 		hp = (hp - mount).max(0)
 		if (self.alive().negate()) {
-			self.dead()
+			self.die()
 		} else {
 			// self.animateHit()
 		}
@@ -132,7 +134,7 @@ class Boss {
 	
 	method alive() = hp > 0
 	
-	method dead(){
+	method die(){
 		game.removeTickEvent("autoAttack")
 		game.say(self, "Volvere mas fuerte...")
 		game.schedule(5000, {
@@ -172,7 +174,6 @@ object player {
 	method image() = "Character.png"
 	
 	// Life
-	method addLife(mount) {hp = hp + mount}
 	method removeLife(mount) {
 		hp = (hp - mount).max(0)
 		game.say(self, hp.toString())
@@ -221,30 +222,34 @@ class Weapon {
 	const damage
 	const buff
 	const bulletImage = "Fireball.png"
-	var cont = random.natural(1, 100000)
 	
-	method damage() = damage * buff
+	method calculateDamage() = damage * buff
 	// method image() = bulletImage
 	
 	method fire(startPosition, orientation){
-		const bullet = new Bullet(position = startPosition, damage = self.damage(), image = bulletImage, orientation = orientation, index = cont)
-		bullet.start()
-		cont++
+		const bullet = new Bullet(
+			position = startPosition,
+			damage = self.calculateDamage(),
+			image = bulletImage,
+			orientation = orientation,
+			id = random.number()
+		)
+		bullet.startPath()
 	}
 }
 
 class Bullet {
-	var position
 	const damage
-	const image
-	var hit = false
 	const orientation
-	const index
+	const id
+	
+	const image
+	var property position
 	
 	method image() = image
 	method position() = position
 	
-	method start(){
+	method startPath(){
 		game.addVisual(self)
 		game.onCollideDo(self, { something =>
 			something.bulletCrash(damage)
@@ -253,11 +258,11 @@ class Bullet {
 		game.onTick(20, self.unicID(), {self.move()})
 	}
 	
-	method unicID() = "bullet" + index.toString()
+	method unicID() = "bullet" + id.toString()
 	
 	// Issue 1 - La bala no desaparece en onCollide
 	method move() {
-		if (hit.negate() && self.onLimit().negate()){
+		if (self.onLimit().negate()){
 			position = orientation.nextPosition(position)
 		} else {
 			self.destroy()
@@ -271,7 +276,7 @@ class Bullet {
 		game.removeVisual(self)
 	}
 	
-	method bulletCrash(a) {
+	method bulletCrash(_) {
 		self.destroy()
 	}
 }
