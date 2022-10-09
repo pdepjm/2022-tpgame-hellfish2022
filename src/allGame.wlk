@@ -1,19 +1,19 @@
 import wollok.game.*
 
 object up {
-	method nextPosition(pos) = if(scenario.estaAdentro(pos.up(1))) pos.up(1) else pos	
+	method nextPosition(pos) = pos.up(1)
 }
 
 object right {
-	method nextPosition(pos) = if(scenario.estaAdentro(pos.right(1))) pos.right(1) else pos
+	method nextPosition(pos) = pos.right(1)
 
 }
 object left {
-	method nextPosition(pos) = if(scenario.estaAdentro(pos.left(1))) pos.left(1) else pos 	
+	method nextPosition(pos) = pos.left(1)
 }
 
 object down {
-	method nextPosition(pos) = if(scenario.estaAdentro(pos.down(1))) pos.down(1) else pos 		
+	method nextPosition(pos) = pos.down(1)	
 }
 
 object engine {
@@ -24,12 +24,12 @@ object engine {
 		game.cellSize(30) 
 	}
 	method keysSetting() {
-		keyboard.w().onPressDo({player.goTo(up)})
+		// keyboard.w().onPressDo({player.goTo(up)})
 		keyboard.a().onPressDo({player.goTo(left)}) 
-		keyboard.s().onPressDo({player.goTo(down)}) 
+		// keyboard.s().onPressDo({player.goTo(down)}) 
 		keyboard.d().onPressDo({player.goTo(right)}) 
-		keyboard.space().onPressDo({player.attack()})
-		keyboard.p().onPressDo({boss.attack()})
+		keyboard.q().onPressDo({player.attack()})
+		keyboard.space().onPressDo({player.jump()})
 	}
 }
 
@@ -41,30 +41,58 @@ object random {
 object scenario {
 	const playerBasePosition = game.at(game.center().x() - game.width() / 3, game.center().y())
 	const bossBasePosition = game.at(game.center().x() + game.width() / 3, game.center().y())
+	const hpBoss = random.natural(0, 250)
+	
+	const xMin = 3
+	const xMax = game.width() - 3
+	const yMin = 5
+	const yMax = game.height() - 10
 
-	method estaAdentro(posicion) = posicion.x().between(3,game.width()-3) && posicion.y().between(5,game.height()-10) 
+	method estaAdentro(posicion) = self.limitX(posicion.x()) && self.limitY(posicion.y())
+	
+	method limitX(positionX) = positionX.between(xMin, xMax)
+	method limitY(positionY) = positionY.between(yMin, yMax)
+	
 	
 	method load(){
 		player.startAt(playerBasePosition)
 		player.setWeapon(new Weapon(damage = 10, buff = 2))
 		game.addVisual(player)
 		
+		const boss = new Boss(hp = hpBoss, position = bossBasePosition, dificulty = 3)
 		boss.setWeapon(new Weapon(damage = 10, buff = 2))
-		boss.randomBoss()
 		boss.startAt(bossBasePosition)
+		boss.randomBoss()
 		game.addVisual(boss)
+		boss.start()
+		
+		game.boardGround("fondo1.png")
+	}
+	
+	method end(){
+		game.schedule(5000,
+			{
+				game.clear()
+				game.addVisual(new CenterMessage(message = "GAME END"))
+			}
+		)
 	}
 }
 
+class CenterMessage {
+	var message
+	method position() = game.center()
+	method text() = message
+	method textColor() = "000000FF"
+}
 
-object boss {
-	var hp = random.natural(0, 250)
+class Boss {
+	var hp
 	var property position
 	const bosses = ["Boss_1.png", "Boss_2.png"]
 	var image = null
 	var weapon = null
-	method setWeapon(newWeapon) {weapon = newWeapon}
-	
+	const dificulty // Dificulty 1 2 3
 	
 	// Image Boss
 	method image() = image
@@ -73,11 +101,23 @@ object boss {
 		image = bosses.get(random.natural(0, bosses.size() - 1))
 	}
 	
-	method attack() {
-		const bullet = new Bullet(position = position.left(1), weapon = weapon)
-		game.addVisual(bullet)
-		bullet.move(left)
+	method start(){
+		game.onTick(750, "autoAttack", {self.autoAttack()})
 	}
+	
+	method attack() {
+		weapon.fire(position.left(1), left)
+	}
+	
+	method autoAttack(){
+		const probability = random.natural(0, 100)
+		if (probability > 75.min(100 / dificulty)){
+			self.attack()
+		} 
+	}
+	
+	// Weapon
+	method setWeapon(newWeapon) {weapon = newWeapon}
 	
 	// Life
 	method removeLife(mount) {
@@ -93,9 +133,12 @@ object boss {
 	method alive() = hp > 0
 	
 	method dead(){
+		game.removeTickEvent("autoAttack")
 		game.say(self, "Volvere mas fuerte...")
-		game.schedule(5000, {game.removeVisual(self)})
-		game.schedule(7500, {puerta.aparecer()})
+		game.schedule(5000, {
+			game.removeVisual(self)
+			puerta.aparecer()
+		})
 	}
 	
 	method animateHit(){
@@ -130,17 +173,23 @@ object player {
 	
 	// Life
 	method addLife(mount) {hp = hp + mount}
-	method removeLife(mount) {hp = (hp - mount).max(0)}
+	method removeLife(mount) {
+		hp = (hp - mount).max(0)
+		game.say(self, hp.toString())
+	}
 	
 	method alive() = hp > 0
+	
+	method die(){
+		game.say(self, "Zzzzzz GG NO TEAM")
+		game.schedule(2000, {scenario.end()})
+	}
 	
 	// Weapon
 	method setWeapon(newWeapon) {weapon = newWeapon}
 	
 	method attack() {
-		const bullet = new Bullet(position = position.right(1), weapon = weapon)
-		game.addVisual(bullet)
-		bullet.move(right)
+		weapon.fire(position.right(1), right)
 	}
 	
 	// Position
@@ -149,55 +198,82 @@ object player {
 	}
 	
 	method goTo(dir) {
-		position = dir.nextPosition(position)
+		if( scenario.estaAdentro(dir.nextPosition(position)) ){
+			position = dir.nextPosition(position)
+		}
+	}
+	
+	method jump(){
+		position = position.up(3).right(1)
+		game.schedule(500, {position = position.down(3).right(1)})
 	}
 	
 	// Polimorfismo
 	method bulletCrash(damage){
 		self.removeLife(damage)
+		if (self.alive().negate()){
+			self.die()
+		}
 	}
 }
 
 class Weapon {
 	const damage
 	const buff
-	const image = "Fireball.png"
+	const bulletImage = "Fireball.png"
+	var cont = random.natural(1, 100000)
 	
 	method damage() = damage * buff
-	method image() = image
+	// method image() = bulletImage
+	
+	method fire(startPosition, orientation){
+		const bullet = new Bullet(position = startPosition, damage = self.damage(), image = bulletImage, orientation = orientation, index = cont)
+		bullet.start()
+		cont++
+	}
 }
 
 class Bullet {
 	var position
-	const weapon
+	const damage
+	const image
 	var hit = false
+	const orientation
+	const index
 	
-	method image() = weapon.image()
+	method image() = image
 	method position() = position
 	
-	// Issue 1 - La bala no desaparece en onCollide
-	method move(orientation) {
+	method start(){
+		game.addVisual(self)
 		game.onCollideDo(self, { something =>
-			something.bulletCrash(weapon.damage())
-			game.removeVisual(self)
-			hit = true
-			game.say(player, hit.toString())
+			something.bulletCrash(damage)
+			self.destroy()
 		})
-		// game.onCollideDo(self, { _ => game.removeVisual(self) })
-		if (hit.negate()){
-			game.onTick(20, "bullet", {self.goTo(orientation)})
+		game.onTick(20, self.unicID(), {self.move()})
+	}
+	
+	method unicID() = "bullet" + index.toString()
+	
+	// Issue 1 - La bala no desaparece en onCollide
+	method move() {
+		if (hit.negate() && self.onLimit().negate()){
+			position = orientation.nextPosition(position)
+		} else {
+			self.destroy()
 		}
 	}
 	
-	method goTo(orientation){
-		position = orientation.nextPosition(position)
-		if ( position.x() > game.width() ){
-			game.removeTickEvent("bullet")
-			game.removeVisual(self)
-		}
+	method onLimit() = scenario.estaAdentro(orientation.nextPosition(position)).negate()
+	
+	method destroy() {
+		game.removeTickEvent(self.unicID())
+		game.removeVisual(self)
 	}
 	
-	method bulletCrash(damage) {}
+	method bulletCrash(a) {
+		self.destroy()
+	}
 }
 
 
@@ -205,16 +281,17 @@ object puerta{
 	
 	var property position = game.at(game.center().x() + game.width() / 3, game.center().y())
 	
-	method image() = "puerta.png"
+	method image() = "CaveDoor.png"
 	
 	method position() = position
 	
 	method aparecer() {
 		game.addVisual(self)
-		game.whenCollideDo(player,{self.ganar()})
+		game.onCollideDo(player, {_ => self.ganar()})
 	}
 	
 	method ganar() {
-		game.say(player,"GANE! SOY EL REY DEL INFRAMUNDO!")
+		game.say(self, "GANE! SOY EL MEJOR!")
+		game.schedule(5000, {scenario.end()})
 	}
 }
