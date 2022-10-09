@@ -29,6 +29,7 @@ object engine {
 		keyboard.s().onPressDo({player.goTo(down)}) 
 		keyboard.d().onPressDo({player.goTo(right)}) 
 		keyboard.space().onPressDo({player.attack()})
+		keyboard.p().onPressDo({boss.attack()})
 	}
 }
 
@@ -40,8 +41,7 @@ object random {
 object scenario {
 	const playerBasePosition = game.at(game.center().x() - game.width() / 3, game.center().y())
 	const bossBasePosition = game.at(game.center().x() + game.width() / 3, game.center().y())
-	const hpBoss = random.natural(0, 250)
-	
+
 	method estaAdentro(posicion) = posicion.x().between(3,game.width()-3) && posicion.y().between(5,game.height()-10) 
 	
 	method load(){
@@ -49,7 +49,7 @@ object scenario {
 		player.setWeapon(new Weapon(damage = 10, buff = 2))
 		game.addVisual(player)
 		
-		const boss = new Boss(hp = hpBoss, position = bossBasePosition)
+		boss.setWeapon(new Weapon(damage = 10, buff = 2))
 		boss.randomBoss()
 		boss.startAt(bossBasePosition)
 		game.addVisual(boss)
@@ -57,18 +57,26 @@ object scenario {
 }
 
 
-
-class Boss {
-	var hp
+object boss {
+	var hp = random.natural(0, 250)
 	var property position
 	const bosses = ["Boss_1.png", "Boss_2.png"]
 	var image = null
+	var weapon = null
+	method setWeapon(newWeapon) {weapon = newWeapon}
 	
 	
 	// Image Boss
 	method image() = image
+	
 	method randomBoss() {
 		image = bosses.get(random.natural(0, bosses.size() - 1))
+	}
+	
+	method attack() {
+		const bullet = new Bullet(position = position.left(1), weapon = weapon)
+		game.addVisual(bullet)
+		bullet.move(left)
 	}
 	
 	// Life
@@ -132,7 +140,7 @@ object player {
 	method attack() {
 		const bullet = new Bullet(position = position.right(1), weapon = weapon)
 		game.addVisual(bullet)
-		bullet.move()
+		bullet.move(right)
 	}
 	
 	// Position
@@ -168,7 +176,7 @@ class Bullet {
 	method position() = position
 	
 	// Issue 1 - La bala no desaparece en onCollide
-	method move() {
+	method move(orientation) {
 		game.onCollideDo(self, { something =>
 			something.bulletCrash(weapon.damage())
 			game.removeVisual(self)
@@ -177,12 +185,12 @@ class Bullet {
 		})
 		// game.onCollideDo(self, { _ => game.removeVisual(self) })
 		if (hit.negate()){
-			game.onTick(20, "bullet", {self.goToRight()})
+			game.onTick(20, "bullet", {self.goTo(orientation)})
 		}
 	}
 	
-	method goToRight(){
-		position = position.right(1)
+	method goTo(orientation){
+		position = orientation.nextPosition(position)
 		if ( position.x() > game.width() ){
 			game.removeTickEvent("bullet")
 			game.removeVisual(self)
