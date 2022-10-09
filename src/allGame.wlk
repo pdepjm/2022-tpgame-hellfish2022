@@ -39,9 +39,7 @@ object engine {
 		game.cellSize(30) 
 	}
 	method keysSettingPlayer(player) {
-		// keyboard.w().onPressDo({player.goTo(up)})
 		keyboard.a().onPressDo({player.goTo(left)}) 
-		// keyboard.s().onPressDo({player.goTo(down)}) 
 		keyboard.d().onPressDo({player.goTo(right)}) 
 		keyboard.q().onPressDo({player.attack()})
 		keyboard.space().onPressDo({player.jump()})
@@ -51,14 +49,14 @@ object engine {
 
 // Scenario
 object scenario {
-	const playerBasePosition = game.at(game.center().x() - game.width() / 3, game.center().y())
-	const bossBasePosition = game.at(game.center().x() + game.width() / 3, game.center().y())
+	const playerBasePosition = game.at(game.center().x() - game.width() / 3, game.center().y() / 3)
+	const bossBasePosition = game.at(game.center().x() + game.width() / 3, game.center().y() / 3)
 	const dificulty = 1
 	
-	const xMin = 3
-	const xMax = game.width() - 3
-	const yMin = 5
-	const yMax = game.height() - 10
+	const xMin = game.width() / 10
+	const xMax = game.width() - game.width() / 10
+	const yMin = game.height() / 10
+	const yMax = game.height() - game.height() / 10
 
 	method estaAdentro(posicion) = self.limitX(posicion.x()) && self.limitY(posicion.y())
 	
@@ -75,7 +73,11 @@ object scenario {
 		self.setGround()
 		
 		const player = new Player(hp = 100, position = playerBasePosition)
-		player.setWeapon(new Weapon(damage = 10, buff = 2))
+		if (dificulty == 3){
+			player.setWeapon(crazyWeapon)
+		}else {
+			player.setWeapon(new Weapon(damage = 10, buff = 2))
+		}
 		engine.keysSettingPlayer(player)
 		game.addVisual(player)
 		
@@ -91,7 +93,7 @@ object scenario {
 	}
 	
 	method end(){
-		game.schedule(5000,
+		game.schedule(1000,
 			{
 				game.clear()
 				game.addVisual(new CenterMessage(message = "GAME END"))
@@ -191,14 +193,19 @@ class Player inherits Character {
 	}
 	
 	method jump(){
-		position = position.up(3).right(1)
-		game.schedule(500, {position = position.down(3).right(1)})
-	}
+        if ( scenario.estaAdentro(right.nextPosition(position.right(1))) ){
+            position = position.up(3).right(1)
+            game.schedule(300, {position = position.down(3).right(1)})
+        } else {
+            position = position.up(3)
+            game.schedule(300, {position = position.down(3)})
+        }
+    }
 	
 	override method win() {
 		game.removeVisual(self)
 		game.say(door, "GANE! SOY EL MEJOR!")
-		game.schedule(2000, {scenario.end()})
+		game.schedule(1000, {scenario.end()})
 	}
 }
 
@@ -213,6 +220,30 @@ class Weapon {
 	// method image() = bulletImage
 	
 	method fire(startPosition, orientation){
+		const bullet = new Bullet(
+			position = startPosition,
+			damage = self.calculateDamage(),
+			image = bulletImage,
+			orientation = orientation,
+			id = random.number()
+		)
+		bullet.startPath()
+	}
+}
+
+object crazyWeapon inherits Weapon(damage = 20, buff = 1){
+	override method fire(startPosition, _){
+		const probability = random.natural(0, 100)
+		var orientation = null
+		if (probability > 75){
+			orientation = up
+		} else if (probability > 50){
+			orientation = left
+		} else if (probability > 25){
+			orientation = right
+		} else {
+			orientation = down
+		} 
 		const bullet = new Bullet(
 			position = startPosition,
 			damage = self.calculateDamage(),
@@ -247,14 +278,14 @@ class Bullet {
 	method unicID() = "bullet" + id.toString()
 	
 	method move() {
-		if (self.onLimit().negate()){
+		if (self.onLimit()){
 			position = orientation.nextPosition(position)
 		} else {
 			self.destroy()
 		}
 	}
 	
-	method onLimit() = scenario.estaAdentro(orientation.nextPosition(position)).negate()
+	method onLimit() = scenario.estaAdentro(orientation.nextPosition(position))
 	
 	method destroy() {
 		game.removeTickEvent(self.unicID())
@@ -270,7 +301,7 @@ class Bullet {
 
 // Door - WIN
 object door{
-	var property position = game.at(game.center().x() + game.width() / 3, game.center().y())
+	var property position = game.at(game.center().x() + game.width() / 3, game.center().y() / 3)
 	
 	method image() = "CaveDoor.png"
 	
