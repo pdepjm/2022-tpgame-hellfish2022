@@ -108,6 +108,9 @@ class Character {
 	var weapon = null
 	var property position
 	
+	//Para mostrar la vida por consola
+	method hp() = hp
+	
 	method setWeapon(newWeapon) {weapon = newWeapon}
 	
 	method die()
@@ -301,13 +304,14 @@ class Bullet {
 
 // Door - WIN
 object door{
-	var property position = game.at(game.center().x() + game.width() / 3, game.center().y() / 3)
+	var property position
 	
 	method image() = "CaveDoor.png"
 	
 	method position() = position
 	
 	method spawn() {
+		position = game.at(game.center().x() + game.width() / 3, game.center().y() / 3)
 		game.addVisual(self)
 		game.onCollideDo(self, {anything => anything.win()})
 	}

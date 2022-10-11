@@ -1,6 +1,66 @@
+import wollok.game.*
+import allGame.*
 
-test "testX" {
 
-	assert.that(true)
 
+describe "Tests"{
+	const posicionInicialPlayer =  game.at(game.center().x() - game.width() / 3 - 3, game.center().y() / 3)
+	const posicionInicialBoss = game.at(game.center().x() + game.width() / 3, game.center().y() / 3)
+	const arma = new Weapon(damage = 10, buff = 2)
+	const jugador = new Player(hp = 100,position = posicionInicialPlayer, weapon = arma)
+	const jefe = new Boss(hp = 25,position = posicionInicialBoss,dificulty = 1)
+	
+	
+	method configurar(){
+		game.clear()
+		scenario.load()
+		game.addVisual(jugador)
+		game.addVisual(jefe)
+	}
+	
+	test "El origen (0,0) no se encuentra dentro del escenario"{
+		assert.notThat(scenario.estaAdentro(game.origin()))
+	}
+	
+	test "El centro se encuentra dentro del escenario"{
+		assert.that(scenario.estaAdentro(game.center()))
+	}
+	
+	
+	test "La posicion se mantiene si se intenta avanzar fuera del limite del scenario"{
+		jugador.goTo(left)
+		assert.equals(posicionInicialPlayer,jugador.position())
+	}
+	
+	test "Se calcula correctamente el daño de un arma"{
+		assert.equals(20,arma.calculateDamage())
+	}
+	
+	
+	test "Recibir una bala disminuye la vida" {
+		self.configurar()
+		jugador.bulletCrash(40)
+		assert.equals(60,jugador.hp())
+	}
+	
+	test "Quitar toda la vida del jugador lo mata"{
+		self.configurar()
+		jugador.removeLife(100)
+		assert.notThat(jugador.alive())
+	}
+	
+	test "Quitar toda la vida del jefe lo mata"{
+		self.configurar()
+		jefe.removeLife(30)
+		assert.notThat(jefe.alive())
+	}
+	
+	test "La puerta aparece en la posicion correcta"{
+		self.configurar()
+		door.spawn()
+		assert.equals(posicionInicialBoss,door.position())
+	}
+	
 }
+
+
