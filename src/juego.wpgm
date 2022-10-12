@@ -4,5 +4,6 @@ import allGame.*
 program juego {
 	engine.startSetting()
 	scenario.load()
+	// scenarioPVP.load()
 	game.start()
 }

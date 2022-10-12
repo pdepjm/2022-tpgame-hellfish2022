@@ -44,6 +44,12 @@ object engine {
 		keyboard.q().onPressDo({player.attack()})
 		keyboard.space().onPressDo({player.jump()})
 	}
+	method keysSettingPlayerAlter(player) {
+		keyboard.j().onPressDo({player.goTo(left)}) 
+		keyboard.l().onPressDo({player.goTo(right)}) 
+		keyboard.o().onPressDo({player.attack()})
+		keyboard.i().onPressDo({player.jump()})
+	}
 }
 
 
@@ -72,7 +78,7 @@ object scenario {
 	method load(){
 		self.setGround()
 		
-		const player = new Player(hp = 100, position = playerBasePosition)
+		const player = new Player(hp = 100, position = playerBasePosition, image = "Character.png")
 		if (dificulty == 3){
 			player.setWeapon(crazyWeapon)
 		}else {
@@ -102,11 +108,57 @@ object scenario {
 	}
 }
 
+object scenarioPVP {
+	const playerBasePosition = game.at(game.center().x() - game.width() / 3, game.center().y() / 3)
+	const alterPlayerBasePosition = game.at(game.center().x() + game.width() / 3, game.center().y() / 3)
+	
+	const xMin = game.width() / 10
+	const xMax = game.width() - game.width() / 10
+	const yMin = game.height() / 10
+	const yMax = game.height() - game.height() / 10
+
+	method estaAdentro(posicion) = self.limitX(posicion.x()) && self.limitY(posicion.y())
+	
+	method limitX(positionX) = positionX.between(xMin, xMax)
+	method limitY(positionY) = positionY.between(yMin, yMax)
+	
+	method setGround(){
+		game.boardGround("fondo1.png")
+	}
+	
+	method load(){
+		self.setGround()
+		
+		const player = new Player(hp = 100, position = playerBasePosition, image = "Character.png")
+		player.setWeapon(new Weapon(damage = 10, buff = 2))
+		engine.keysSettingPlayer(player)
+		game.addVisual(player)
+		
+		const playerAlter = new Player(hp = 100, position = alterPlayerBasePosition, image = "Character_Alter.png", alter = true)
+		playerAlter.setWeapon(new Weapon(damage = 10, buff = 2))
+		engine.keysSettingPlayerAlter(playerAlter)
+		game.addVisual(playerAlter)
+	}
+	
+	method end(){
+		game.schedule(1000,
+			{
+				game.clear()
+				game.addVisual(new CenterMessage(message = "GAME END"))
+			}
+		)
+	}
+}
+
 // Characters
 class Character {
 	var hp
 	var weapon = null
 	var property position
+	var property image = null
+	
+	
+	method image() = image
 	
 	//Para mostrar la vida por consola
 	method hp() = hp
@@ -135,11 +187,8 @@ class Character {
 
 class Boss inherits Character {
 	const dificulty // Dificulty 1 2 3
-	var image = null
-	const bosses = ["Boss_1.png", "Boss_2.png"]
 	
-	// Image Boss
-	method image() = image
+	const bosses = ["Boss_1.png", "Boss_2.png"]
 	
 	method randomImage() {
 		image = bosses.get(random.natural(0, bosses.size() - 1))
@@ -174,10 +223,7 @@ class Boss inherits Character {
 }
 
 class Player inherits Character {
-	// Image Character
-	method image() = "Character.png"
-	
-	
+	const alter = false
 	override method die(){
 		game.say(self, "Zzzzzz GG NO TEAM")
 		game.schedule(2000, {scenario.end()})
@@ -185,7 +231,12 @@ class Player inherits Character {
 	
 	
 	override method attack() {
-		weapon.fire(position.right(1), right)
+		if (alter){
+			weapon.fire(position.left(1), left)
+		}else {
+			weapon.fire(position.right(1), right)
+		}
+		
 	}
 	
 
