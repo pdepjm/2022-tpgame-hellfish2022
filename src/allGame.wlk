@@ -36,19 +36,35 @@ object engine {
 		game.title("HellHead") // HellFish
 		game.width(50)
 		game.height(25)  
-		game.cellSize(30) 
+		game.cellSize(30)
+		self.keysGeneral()
 	}
 	method keysSettingPlayer(player) {
 		keyboard.a().onPressDo({player.goTo(left)}) 
 		keyboard.d().onPressDo({player.goTo(right)}) 
-		keyboard.q().onPressDo({player.attack()})
+		keyboard.shift().onPressDo({player.attack()})
 		keyboard.space().onPressDo({player.jump()})
 	}
 	method keysSettingPlayerAlter(player) {
-		keyboard.j().onPressDo({player.goTo(left)}) 
-		keyboard.l().onPressDo({player.goTo(right)}) 
-		keyboard.o().onPressDo({player.attack()})
-		keyboard.i().onPressDo({player.jump()})
+		keyboard.left().onPressDo({player.goTo(left)}) 
+		keyboard.right().onPressDo({player.goTo(right)}) 
+		keyboard.control().onPressDo({player.attack()})
+		keyboard.up().onPressDo({player.jump()})
+	}
+	method keysGeneral(){
+		keyboard.r().onPressDo({scenario.restart()})
+		keyboard.num(1).onPressDo({
+			scenario.dificulty(1)
+			scenario.restart()
+		})
+		keyboard.num(2).onPressDo({
+			scenario.dificulty(2)
+			scenario.restart()
+		})
+		keyboard.num(3).onPressDo({
+			scenario.dificulty(3)
+			scenario.restart()
+		})
 	}
 }
 
@@ -57,7 +73,7 @@ object engine {
 object scenario {
 	const playerBasePosition = game.at(game.center().x() - game.width() / 3, game.center().y() / 3)
 	const bossBasePosition = game.at(game.center().x() + game.width() / 3, game.center().y() / 3)
-	const dificulty = 1
+	var dificulty = 1
 	
 	const xMin = game.width() / 10
 	const xMax = game.width() - game.width() / 10
@@ -69,7 +85,7 @@ object scenario {
 	method limitX(positionX) = positionX.between(xMin, xMax)
 	method limitY(positionY) = positionY.between(yMin, yMax)
 	
-	method calculateBossLife() = random.natural(0, 200 * dificulty)
+	method calculateBossLife() = random.natural(100, 300 * dificulty)
 	
 	method setGround(){
 		game.boardGround("fondo1.png")
@@ -86,6 +102,7 @@ object scenario {
 		}
 		engine.keysSettingPlayer(player)
 		game.addVisual(player)
+		player.loadHPBar()
 		
 		const boss = new Boss(
 			hp = self.calculateBossLife(),
@@ -96,6 +113,7 @@ object scenario {
 		boss.randomImage()
 		game.addVisual(boss)
 		boss.start()
+		boss.loadHPBar()
 	}
 	
 	method end(){
@@ -105,6 +123,15 @@ object scenario {
 				game.addVisual(new CenterMessage(message = "GAME END"))
 			}
 		)
+	}
+	
+	method restart(){
+		game.clear()
+		self.load()
+	}
+	
+	method dificulty(lvl){
+		dificulty = lvl
 	}
 }
 
@@ -156,6 +183,7 @@ class Character {
 	var weapon = null
 	var property position
 	var property image = null
+	var property hpbar = null
 	
 	
 	method image() = image
@@ -175,14 +203,22 @@ class Character {
 	
 	method removeLife(mount) {
 		hp = (hp - mount).max(0)
+		hpbar.removeLife(mount)
 		if (self.alive().negate()){
 			self.die()
 		} else {
-			game.say(self, hp.toString())
+			// game.say(self, hp.toString())
 		}
 	}
 	
 	method win()
+	
+	method loadHPBar(){
+		hpbar = new HPBar(hp = hp, position = self.hpBarPosition(), characterName = "TEST")
+		game.addVisual(hpbar)
+	}
+	
+	method hpBarPosition() = game.at(position.x(), game.height() - game.height() / 10)
 }
 
 class Boss inherits Character {
@@ -196,6 +232,7 @@ class Boss inherits Character {
 	
 	method start(){
 		game.onTick(750, "autoAttack", {self.autoAttack()})
+		
 	}
 	
 	override method attack() {
@@ -366,4 +403,17 @@ object door{
 		game.addVisual(self)
 		game.onCollideDo(self, {anything => anything.win()})
 	}
+}
+
+// HP Bar
+class HPBar{
+	var hp
+	var characterName
+	const position
+	method removeLife(mount){
+		hp = (hp - mount).max(0)
+	}
+	method text() = characterName + " - " +  hp.toString()
+	method textColor() = "FFFFFFFF"
+	method position() = position
 }
