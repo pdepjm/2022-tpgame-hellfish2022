@@ -7,7 +7,7 @@ describe "Tests"{
 	const posicionInicialPlayer =  game.at(game.center().x() - game.width() / 3 - 3, game.center().y() / 3)
 	const posicionInicialBoss = game.at(game.center().x() + game.width() / 3, game.center().y() / 3)
 	const arma = new Weapon(damage = 10, buff = 2)
-	const jugador = new Player(hp = 100,position = posicionInicialPlayer, weapon = arma)
+	const jugador = new Player(hp = 100,position = posicionInicialPlayer, weapon = arma,direccion=null)
 	const jefe = new Boss(hp = 25,position = posicionInicialBoss,dificulty = 1)
 	
 	
