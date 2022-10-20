@@ -8,6 +8,7 @@ object random {
 	method number() = self.natural(1, 10000000)
 	method imagenesEnemy() = imagenesEnemys.get(self.natural(0,imagenesEnemys.size())) 
 	method direccion() = direcciones.get(self.natural(0,direcciones.size()))
+	method lista(list) = list.get(self.natural(0,(list.size()-1))) 
 }
 
 class CenterMessage {
@@ -44,7 +45,7 @@ object engine {
 		game.title("HellHead") // HellFish
 		game.width(50)
 		game.height(25)  
-		game.cellSize(40)
+		game.cellSize(50)
 		self.keysGeneral()
 	}
 	method keysSettingPlayer(player) {
@@ -84,15 +85,15 @@ object scenario {
 	const playerBasePosition = game.at(1,20)
 	const bossBasePosition = game.at(game.center().x() + game.width() / 3, game.center().y() / 3)
 	var dificulty = 1
-	var enemys = []
+	const enemys = []
+	const objetoDelEntorno = []
 	
 	const xMin = 1
 	const xMax = game.width() - game.width() / 10
 	const yMin = 1
 	const yMax = game.height() - game.height() / 10
 	
-	method estaEnLava(position) = (position.x().between(13, 50) && position.y().between(7, 9)) or (position.x().between(43, 50) && position.y().between(11, 25))
-
+	method estaEnLava(position) = (position.x().between(13, 50) && position.y().between(6, 9)) or (position.x().between(40, 50) && position.y().between(9, 25))
 	method estaAdentro(posicion) = self.limitX(posicion.x()) && self.limitY(posicion.y())
 	
 	method limitX(positionX) = positionX.between(xMin, xMax)
@@ -118,17 +119,19 @@ object scenario {
 		player.loadHPBar()
 		
 		5.times({i=>self.agregarEnemigo(i-1)})
-		
+		7.times({i=>self.agregarObjetoDelEntorno(i-1)})
 		}
 		
 	method agregarEnemigo(n){
-		enemys.add(new Enemy(hp=random.natural(50,200), position=self.randomPosition(), image = random.imagenesEnemy(), direccion = left, id = random.number().toString() )) 
-		enemys.get(n).setWeapon(new Weapon(damage = 10, buff = 2))
-		enemys.get(n).loadHPBar()
-		enemys.get(n).start()
-		game.addVisual(enemys.get(n))
+		enemys.add(new Enemy(hp=random.natural(50,200), position=self.randomPosition(), direccion = left, id = random.number().toString() )) 
+		enemys.get(n).spawn()
 	}
-		
+	
+	method agregarObjetoDelEntorno(n){
+		objetoDelEntorno.add(new ObjetoDelEntorno(position=self.positionNotInLava()))
+		objetoDelEntorno.get(n).spawn()
+	}
+	
 	method end(){
 		game.schedule(1000,
 			{
@@ -146,7 +149,12 @@ object scenario {
 	method removeEnemy(enemy) = enemys.remove(enemy) 
 	method ningunEnemigo() = enemys.isEmpty()
 	
-	method randomPosition() = game.at(random.natural(5,45),random.natural(1,20))
+	method randomPosition() = game.at(random.natural(1,49),random.natural(1,24))
+	
+	method positionNotInLava(){
+		const newPosition = self.randomPosition()
+		 return (if(self.estaEnLava(newPosition))self.positionNotInLava() else newPosition)
+		}
 	
 	method dificulty(lvl){
 		dificulty = lvl
@@ -197,13 +205,13 @@ object scenarioPVP {
 
 // Characters
 class Character {
-	var direccion 
 	var hp
 	var weapon = null
+	var property direccion 
 	var property position
 	var property image = null
 	var property hpbar = null
-	//const directions = [up, down, left, right]
+	
 	
 	
 	method image(imagen) { image = imagen}
@@ -223,11 +231,7 @@ class Character {
 	method removeLife(mount) {
 		hp = (hp - mount).max(0)
 		hpbar.removeLife(mount)
-		if (self.alive().negate()){
-			self.die()
-		} else {
-			// game.say(self, hp.toString())
-		}
+		if (self.alive().negate()) self.die()
 	}
 	
 	method win()
@@ -237,6 +241,15 @@ class Character {
 	method loadHPBar(){
 		hpbar = new HPBar(hp = hp, position = self.hpBarPosition(), characterName = "TEST")
 		game.addVisual(hpbar)
+	}
+	
+	method movimiento(dir){if( scenario.estaAdentro(dir.nextPosition(position)))position = dir.nextPosition(position)}	
+	
+	method chocar(){
+		if(direccion.cual()=="izquierda") position=position.left(-2)
+		if(direccion.cual()=="derecha") position=position.right(-2)
+		if(direccion.cual()=="arriba") position=position.up(-2)
+		if(direccion.cual()=="abajo") position=position.down(-2)
 	}
 	
 	method hpBarPosition() = game.at(position.x(), game.height() - game.height() / 10)
@@ -282,6 +295,10 @@ class Enemy inherits Character {
 	
 	const dificulty=2
 	const id
+	const imagenesEnemys = ["enemy1.png","enemy2.png","enemy3.png","enemy4.png","enemy5.png"]
+	
+	
+	method randomImage(){image=random.lista(imagenesEnemys)}
 	
 	override method die(){
 		game.removeTickEvent("autoAttack"+id)
@@ -300,8 +317,16 @@ class Enemy inherits Character {
 	
 	method move(){
 		const dir = random.direccion()
-		if( scenario.estaAdentro(dir.nextPosition(position)))position = dir.nextPosition(position)
+		self.movimiento(dir)
 		direccion = dir	
+	}
+	
+	method spawn(){
+		self.setWeapon(new Weapon(damage = 10, buff = 2))
+		self.loadHPBar()
+		self.randomImage()
+		self.start()
+		game.addVisual(self)
 	}
 	override method win(){}
 }
@@ -309,11 +334,12 @@ class Enemy inherits Character {
 class Player inherits Character {
 	override method die(){
 		game.say(self, "Zzzzzz GG NO TEAM")
-		game.schedule(1500, {scenario.end()})
+		//game.schedule(1500, {scenario.end()})
 	}
 	
 		
 	method goTo(dir) {
+		self.movimiento(dir)
 		if( scenario.estaAdentro(dir.nextPosition(position)))position = dir.nextPosition(position)		
 		if(scenario.estaEnLava(dir.nextPosition(position)))self.die()
 		if(dir.cual()=="derecha"){self.image("Character.png")
@@ -426,8 +452,9 @@ class Bullet {
 	method bulletCrash(_) {
 		self.destroy()
 	}
-	
+	method dontMove() {self.bulletCrash(0)}
 	method win() {}
+	method chocar() {}
 }
 
 // Door - WIN
@@ -456,4 +483,21 @@ class HPBar{
 	method text() = characterName + " - " +  hp.toString()
 	method textColor() = "FFFFFFFF"
 	method position() = position
+	method bulletCrash(_){}
+}
+
+class ObjetoDelEntorno {
+	const objectImages = ["object1.png","object2.png","object3.png","object4.png","object5.png"]
+	var property position
+	var property image = null
+	
+	method randomImage() {image = random.lista(objectImages)}
+	method bulletCrash(_){}
+	method spawn() {
+		self.randomImage()
+		game.addVisual(self)
+		game.onCollideDo(self, {algo => algo.chocar() game.say(algo, "puto")})
+	}
+	
+		
 }
