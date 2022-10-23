@@ -1,10 +1,12 @@
-# Nombre del juego (<- borrar y completar)
+# HELLTAKER
 
 ## Equipo de desarrollo
 
-- Alguien
-- Persona
-- etc.
+- CALBI MATTEO
+- LLANOS EMANUEL
+- PALMIERI CIRO
+- PEDACI MARCOS
+- PICCININNO FRANCO 
 
 ## Capturas
 
@@ -17,6 +19,6 @@
 
 ## Otros
 
-- Curso/Facultad
+- K2004 / UTN FRBA
 - Versión de wollok
-- Una vez terminado, no tenemos problemas en que el repositorio sea público / queremos manternerlo privado
+- Una vez terminado, no tenemos problemas en que el repositorio sea público

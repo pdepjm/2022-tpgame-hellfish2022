@@ -35,5 +35,5 @@ class HPBar{
 	
 	method hpLevel() = (15 * hp / hpMax).roundUp(0).min(15)
 	
-	method image() = "HPBar" + self.hpLevel().toString() + ".png"
+	method image() = "HPBar/HPBar" + self.hpLevel().toString() + ".png"
 }

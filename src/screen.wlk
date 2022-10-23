@@ -60,18 +60,10 @@ class Screen {
 
 }
 
-class Image {
-	var property name
-	var property position = null
-
-	method image() = name + ".png"
-
-}
-
 object menu inherits Screen {
 	var selectedButtonNumber = 0
 
-	override method background() = "menu/menu_background.png"
+	override method background() = "menu/menu_background.jpg"
 
 	method selectedButton() = self.buttons().get(selectedButtonNumber)
 
@@ -98,13 +90,28 @@ object menu inherits Screen {
 	}
 
 	override method show() {
-		game.addVisual(new Image(name = "menu/title", position = game.center().left(4).up(2)))
 		var nextPosition = game.center().left(3).down(2)
 		self.buttons().forEach({ button =>
 			button.position(nextPosition)
 			game.addVisual(button)
 			nextPosition = nextPosition.down(2)
 		})
+	}
+}
+
+object endScreen inherits Screen {
+	override method show() {
+		// game.addVisual(new CenterMessage(message = "GAME END"))
+	}
+	
+	override method setInputs() {
+		keyboard.enter().onPressDo{ self.backMenu() }
+	}
+	
+	override method background() = "menu/end_background.jpg"
+	
+	method backMenu() {
+		screenManager.switchScreen(menu)
 	}
 }
 
@@ -169,12 +176,7 @@ class LevelCharacteristics {
 	}
 	
 	method end(){
-		game.schedule(1000,
-			{
-				game.clear()
-				game.addVisual(new CenterMessage(message = "GAME END"))
-			}
-		)
+		game.schedule(1000,{ screenManager.switchScreen(endScreen) })
 	}
 	
 	method specialActions()
