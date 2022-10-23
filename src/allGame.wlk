@@ -94,7 +94,7 @@ object scenario {
 	method load(){
 		self.setGround()
 		
-		const player = new Player(hp = 100, position = playerBasePosition, image = "Character.png")
+		const player = new Player(hpMax = 100, position = playerBasePosition, image = "Character.png")
 		if (dificulty == 3){
 			player.setWeapon(crazyWeapon)
 		}else {
@@ -105,7 +105,7 @@ object scenario {
 		player.loadHPBar()
 		
 		const boss = new Boss(
-			hp = self.calculateBossLife(),
+			hpMax = self.calculateBossLife(),
 			position = bossBasePosition,
 			dificulty = dificulty
 		)
@@ -156,12 +156,12 @@ object scenarioPVP {
 	method load(){
 		self.setGround()
 		
-		const player = new Player(hp = 100, position = playerBasePosition, image = "Character.png")
+		const player = new Player(hpMax = 100, position = playerBasePosition, image = "Character.png")
 		player.setWeapon(new Weapon(damage = 10, buff = 2))
 		engine.keysSettingPlayer(player)
 		game.addVisual(player)
 		
-		const playerAlter = new Player(hp = 100, position = alterPlayerBasePosition, image = "Character_Alter.png", alter = true)
+		const playerAlter = new Player(hpMax = 100, position = alterPlayerBasePosition, image = "Character_Alter.png", alter = true)
 		playerAlter.setWeapon(new Weapon(damage = 10, buff = 2))
 		engine.keysSettingPlayerAlter(playerAlter)
 		game.addVisual(playerAlter)
@@ -179,12 +179,12 @@ object scenarioPVP {
 
 // Characters
 class Character {
-	var hp
+	var hpMax
 	var weapon = null
 	var property position
 	var property image = null
 	var property hpbar = null
-	
+	var hp = hpMax
 	
 	method image() = image
 	
@@ -193,7 +193,9 @@ class Character {
 	
 	method setWeapon(newWeapon) {weapon = newWeapon}
 	
-	method die()
+	method die() {
+		game.removeVisual(hpbar)
+	}
 	
 	method alive() = hp > 0
 	
@@ -213,8 +215,10 @@ class Character {
 	
 	method win()
 	
+	method characterName() = self.toString()
+	
 	method loadHPBar(){
-		hpbar = new HPBar(hp = hp, position = self.hpBarPosition(), characterName = "TEST")
+		hpbar = new HPBar(hp = hp, hpMax = hpMax, position = self.hpBarPosition(), characterName = self.characterName())
 		game.addVisual(hpbar)
 	}
 	
@@ -248,6 +252,7 @@ class Boss inherits Character {
 	
 	// Life
 	override method die(){
+		super()
 		game.removeTickEvent("autoAttack")
 		game.say(self, "Volvere mas fuerte...")
 		game.schedule(5000, {
@@ -262,6 +267,7 @@ class Boss inherits Character {
 class Player inherits Character {
 	const alter = false
 	override method die(){
+		super()
 		game.say(self, "Zzzzzz GG NO TEAM")
 		game.schedule(2000, {scenario.end()})
 	}
@@ -408,6 +414,7 @@ object door{
 // HP Bar
 class HPBar{
 	var hp
+	var hpMax
 	var characterName
 	const position
 	method removeLife(mount){
@@ -416,4 +423,8 @@ class HPBar{
 	method text() = characterName + " - " +  hp.toString()
 	method textColor() = "FFFFFFFF"
 	method position() = position
+	
+	method hpLevel() = (15 * hp / hpMax).roundUp(0).min(15)
+	
+	method image() = "HPBar" + self.hpLevel().toString() + ".png"
 }
