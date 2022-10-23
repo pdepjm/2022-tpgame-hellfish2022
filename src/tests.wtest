@@ -1,8 +1,6 @@
 import wollok.game.*
 import allGame.*
 
-
-
 describe "Tests"{
 	const posicionInicialPlayer =  game.at(game.center().x() - game.width() / 3 - 3, game.center().y() / 3)
 	const posicionInicialBoss = game.at(game.center().x() + game.width() / 3, game.center().y() / 3)
