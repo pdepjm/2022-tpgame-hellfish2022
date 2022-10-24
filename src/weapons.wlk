@@ -5,18 +5,16 @@ import screen.*
 
 // Weapon and Bullet
 class Weapon {
-	const damage
 	const buff
-	const bulletImage = "Fireball.png"
+	const bulletType = fireball
 	
-	method calculateDamage() = damage * buff
-	// method image() = bulletImage
+	method calculateDamage() = bulletType.damage() * buff
 	
 	method fire(startPosition, orientation){
 		const bullet = new Bullet(
 			position = startPosition,
 			damage = self.calculateDamage(),
-			image = bulletImage,
+			type = bulletType,
 			orientation = orientation,
 			id = random.number()
 		)
@@ -24,28 +22,27 @@ class Weapon {
 	}
 }
 
-object crazyWeapon inherits Weapon(damage = 20, buff = 1){
+object crazyWeapon inherits Weapon(buff = 5){
 	override method fire(startPosition, _){
-		const probability = random.natural(0, 100)
-		var orientation = null
-		if (probability > 75){
-			orientation = up
-		} else if (probability > 50){
-			orientation = left
-		} else if (probability > 25){
-			orientation = right
-		} else {
-			orientation = down
-		} 
-		const bullet = new Bullet(
-			position = startPosition,
-			damage = self.calculateDamage(),
-			image = bulletImage,
-			orientation = orientation,
-			id = random.number()
-		)
-		bullet.startPath()
+		super(startPosition, self.randomDirection())
 	}
+	
+	method randomDirection(){
+		const probability = random.natural(0, 100)
+		if (probability > 75){
+			return up
+		} else if (probability > 50){
+			return left
+		} else if (probability > 25){
+			return right
+		} else {
+			return down
+		}
+	}
+}
+
+object noWeapon inherits Weapon(buff = 0){
+	override method fire(startPosition, orientation){}
 }
 
 class Bullet {
@@ -53,10 +50,10 @@ class Bullet {
 	const orientation
 	const id
 	
-	const image
+	const type
 	var property position
 	
-	method image() = image
+	method image() = type.imageName() + orientation.letter() + ".png"
 	method position() = position
 	
 	method startPath(){
@@ -90,4 +87,9 @@ class Bullet {
 	}
 	
 	method win() {}
+}
+
+object fireball {
+	method damage() = 10
+	method imageName() = "bullets/Fireball"
 }

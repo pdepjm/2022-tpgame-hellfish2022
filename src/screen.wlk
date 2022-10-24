@@ -86,11 +86,12 @@ object menu inherits Screen {
 	}
 
 	method buttons() {
-		return [ new LevelButton(level = level0), new LevelButton(level = level1), new LevelButton(level = level2) ]
+		// return [ new LevelButton(level = level0), new LevelButton(level = level1), new LevelButton(level = level2) ]
+		return [ new LevelButton(level = level0), new LevelButton(level = level1), new LevelButton(level = new LevelHistory(level = 1)) ]
 	}
 
 	override method show() {
-		var nextPosition = game.center().left(3).down(2)
+		var nextPosition = game.center().left(11).down(3)
 		self.buttons().forEach({ button =>
 			button.position(nextPosition)
 			game.addVisual(button)
@@ -168,6 +169,7 @@ class LevelCharacteristics {
 	
 	// No va a ser usado en los niveles PVP
 	method bossLife()
+	method bossImage()
 	
 	method generateCharacters()
 	
@@ -184,35 +186,36 @@ class LevelCharacteristics {
 
 object level0 inherits LevelCharacteristics {
 	override method levelNumber() = 0
-	override method background() = "tiledWood.jpg"
+	override method background() = "levels/LEVEL0.jpg"
 	override method bossLife() = 0
+	override method bossImage() = ""
 	
 	override method generateCharacters(){
-		character1 = new Player(hp = 100, position = character1Position, image = "Character.png")
-		character1.setWeapon(new Weapon(damage = 10, buff = 2))
+		character1 = new Player(hp = 100, position = character1Position, image = "Character", orientation = right)
+		character1.setWeapon(new Weapon(buff = 2))
 		character1.loadHPBar()
 		
-		character2 = new Player(hp = 100, position = character2Position, image = "Character_Alter.png", alter = true)
-		character2.setWeapon(new Weapon(damage = 10, buff = 2))
+		character2 = new Player(hp = 100, position = character2Position, image = "Character")
+		character2.setWeapon(new Weapon(buff = 2))
 		character2.loadHPBar()
 	}
-	 
+	
 	override method specialActions() {}
 }
 
-object level1 inherits LevelCharacteristics  {
+object level1 inherits LevelCharacteristics {
 	override method levelNumber() = 1
-	override method background() = "fondo1.png"
+	override method background() = "levels/LEVEL1.jpg"
 	override method bossLife() = random.natural(500, 3000)
+	override method bossImage() = "BOSS1"
 	
 	override method generateCharacters() {
-		character1 = new Player(hp = 100, position = character1Position, image = "Character.png")
-		character1.setWeapon(new Weapon(damage = 10, buff = 2))
+		character1 = new Player(hp = 100, position = character1Position, image = "Character", orientation = right)
+		character1.setWeapon(new Weapon(buff = 2))
 		character1.loadHPBar()
 		
-		character2 = new Boss(hp = self.bossLife(), position = character2Position, dificulty = self.levelNumber())
-		character2.setWeapon(new Weapon(damage = 10, buff = 2))
-		character2.randomImage()
+		character2 = new Boss(hp = self.bossLife(), position = character2Position, dificulty = self.levelNumber(), image = self.bossImage())
+		character2.setWeapon(new Weapon(buff = 2))
 		character2.loadHPBar()
 	}
 	override method specialActions() {
@@ -220,22 +223,63 @@ object level1 inherits LevelCharacteristics  {
 	}
 }
 
-object level2 inherits LevelCharacteristics  {
+object level2 inherits LevelCharacteristics {
 	override method levelNumber() = 2
-	override method background() = "fondo1.png"
+	override method background() = "levels/LEVEL2.jpg"
 	override method bossLife() = random.natural(1000, 5000)
+	override method bossImage() = "BOSS2"
 	
 	override method generateCharacters() {
-		character1 = new Player(hp = 100, position = character1Position, image = "Character.png")
-		character1.setWeapon(new Weapon(damage = 10, buff = 2))
+		character1 = new Player(hp = 100, position = character1Position, image = "Character", orientation = right)
+		character1.setWeapon(new Weapon(buff = 2))
 		character1.loadHPBar()
 		
-		character2 = new Boss(hp = self.bossLife(), position = character2Position, dificulty = self.levelNumber())
-		character2.setWeapon(new Weapon(damage = 10, buff = 5))
-		character2.randomImage()
+		character2 = new Boss(hp = self.bossLife(), position = character2Position, dificulty = self.levelNumber(), image = self.bossImage())
+		character2.setWeapon(new Weapon(buff = 5))
 		character2.loadHPBar()
 	}
 	override method specialActions() {
 		character2.start()
+	}
+}
+
+class LevelHistory inherits LevelCharacteristics {
+	var property level = 1
+	
+	const backgroundsCount = 3
+	const bossesCount = 2
+	
+	override method levelNumber() = 99
+	override method background() = "levels/LEVEL" + self.selectionBackground() + ".jpg"
+	
+	method selectionBackground() = mod.calculate(backgroundsCount, level)
+	method selectionBoss() = mod.calculate(bossesCount, level)
+	override method bossImage() = "bosses/BOSS" + self.selectionBoss().toString() + ".png"
+	
+	override method bossLife() = random.natural(100 * level, 300 * level)
+	
+	override method generateCharacters() {
+		character1 = new Player(hp = 100 * level, position = character1Position, image = "Character", orientation = right)
+		character1.setWeapon(new Weapon(buff = 2 * level))
+		character1.loadHPBar()
+		
+		character2 = new Boss(hp = self.bossLife(), position = character2Position, dificulty = self.levelNumber(), image = self.bossImage())
+		character2.setWeapon(new Weapon(buff = 5* level))
+		character2.loadHPBar()
+	}
+	
+	override method specialActions() {
+		character2.start()
+	}
+	
+	override method end(){
+		if (character1.alive()){
+			game.schedule(1000,{
+				playScreen.levelCharacteristics(new LevelHistory(level = playScreen.levelCharacteristics().level() + 1))
+				screenManager.switchScreen(playScreen)
+			})
+		} else {
+			super()
+		}
 	}
 }

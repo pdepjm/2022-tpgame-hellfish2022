@@ -8,13 +8,13 @@ import screen.*
 // Characters
 class Character {
 	var hp
-	var weapon = null
+	var weapon = noWeapon
 	var property position
 	var property image = null
 	var property hpbar = null
+	var property orientation = left
 	
-	
-	method image() = image
+	method image() = image + orientation.letter() + ".png"
 	
 	//Para mostrar la vida por consola
 	method hp() = hp
@@ -42,7 +42,7 @@ class Character {
 	method win()
 	
 	method loadHPBar(){
-		hpbar = new HPBar(hp = hp, position = self.hpBarPosition(), characterName = "TEST")
+		hpbar = new HPBar(hp = hp, position = self.hpBarPosition())
 		game.addVisual(hpbar)
 	}
 	
@@ -52,14 +52,10 @@ class Character {
 class Boss inherits Character {
 	const dificulty // Dificulty 1 2 3
 	
-	const bosses = ["Boss_1.png", "Boss_2.png"]
-	
-	method randomImage() {
-		image = bosses.get(random.natural(0, bosses.size() - 1))
-	}
+	override method image() = "bosses/" + image + ".png"
 	
 	method start(){
-		game.onTick(750, "autoAttack", {self.autoAttack()})
+		game.onTick(200, "autoAttack", {self.autoAttack()})
 		
 	}
 	
@@ -88,7 +84,8 @@ class Boss inherits Character {
 }
 
 class Player inherits Character {
-	const alter = false
+	override method image() = "characters/" + super()
+		
 	override method die(){
 		game.say(self, "Zzzzzz GG NO TEAM")
 		game.schedule(2000, {playScreen.levelCharacteristics().end()})
@@ -96,17 +93,13 @@ class Player inherits Character {
 	
 	
 	override method attack() {
-		if (alter){
-			weapon.fire(position.left(1), left)
-		}else {
-			weapon.fire(position.right(1), right)
-		}
-		
+		weapon.fire(orientation.nextPosition(position), orientation)
 	}
 	
 
 	method goTo(dir) {
 		if( playScreen.estaAdentro(dir.nextPosition(position)) ){
+			orientation = dir
 			position = dir.nextPosition(position)
 		}
 	}
