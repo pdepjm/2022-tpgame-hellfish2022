@@ -89,11 +89,11 @@ object scenario {
 	const objetoDelEntorno = []
 	
 	const xMin = 1
-	const xMax = game.width() - game.width() / 10
+	const xMax = 49
 	const yMin = 1
 	const yMax = game.height() - game.height() / 10
 	
-	method estaEnLava(position) = (position.x().between(13, 50) && position.y().between(6, 9)) or (position.x().between(40, 50) && position.y().between(9, 25))
+	method estaEnLava(position) = (position.x().between(13, 50) && position.y().between(6, 9)) or (position.x().between(41, 50) && position.y().between(9, 25))
 	method estaAdentro(posicion) = self.limitX(posicion.x()) && self.limitY(posicion.y())
 	
 	method limitX(positionX) = positionX.between(xMin, xMax)
@@ -119,7 +119,7 @@ object scenario {
 		player.loadHPBar()
 		
 		5.times({i=>self.agregarEnemigo(i-1)})
-		7.times({i=>self.agregarObjetoDelEntorno(i-1)})
+		10.times({i=>self.agregarObjetoDelEntorno(i-1)})
 		}
 		
 	method agregarEnemigo(n){
@@ -131,6 +131,7 @@ object scenario {
 		objetoDelEntorno.add(new ObjetoDelEntorno(position=self.positionNotInLava()))
 		objetoDelEntorno.get(n).spawn()
 	}
+	method dondeHayODE()= objetoDelEntorno.map({objeto=>objeto.position()})
 	
 	method end(){
 		game.schedule(1000,
@@ -243,8 +244,13 @@ class Character {
 		game.addVisual(hpbar)
 	}
 	
-	method movimiento(dir){if( scenario.estaAdentro(dir.nextPosition(position)))position = dir.nextPosition(position)}	
+	method movimiento(dir){
+		if(self.estaEnLimite(dir) or self.hayODE(dir) )position = dir.nextPosition(position)
+	}	
 	
+	method estaEnLimite(dir) = scenario.estaAdentro(dir.nextPosition(position))
+	method hayODE(dir)= scenario.dondeHayODE().any({posicion=>posicion==dir.nextPosition(position)})
+		
 	method chocar(){
 		if(direccion.cual()=="izquierda") position=position.left(-2)
 		if(direccion.cual()=="derecha") position=position.right(-2)
@@ -339,8 +345,7 @@ class Player inherits Character {
 	
 		
 	method goTo(dir) {
-		self.movimiento(dir)
-		if( scenario.estaAdentro(dir.nextPosition(position)))position = dir.nextPosition(position)		
+		self.movimiento(dir)	
 		if(scenario.estaEnLava(dir.nextPosition(position)))self.die()
 		if(dir.cual()=="derecha"){self.image("Character.png")
 			direccion = dir
@@ -496,7 +501,7 @@ class ObjetoDelEntorno {
 	method spawn() {
 		self.randomImage()
 		game.addVisual(self)
-		game.onCollideDo(self, {algo => algo.chocar() game.say(algo, "puto")})
+		game.onCollideDo(self, {algo => algo.chocar()})
 	}
 	
 		
