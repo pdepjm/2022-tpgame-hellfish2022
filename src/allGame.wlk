@@ -73,7 +73,7 @@ object engine {
 object scenario {
 	const playerBasePosition = game.at(game.center().x() - game.width() / 3, game.center().y() / 3)
 	const bossBasePosition = game.at(game.center().x() + game.width() / 3, game.center().y() / 3)
-	var dificulty = 1
+	var difficulty = 1
 	
 	const xMin = game.width() / 10
 	const xMax = game.width() - game.width() / 10
@@ -85,7 +85,7 @@ object scenario {
 	method limitX(positionX) = positionX.between(xMin, xMax)
 	method limitY(positionY) = positionY.between(yMin, yMax)
 	
-	method calculateBossLife() = random.natural(100, 300 * dificulty)
+	method calculateBossLife() = random.natural(100, 300 * difficulty)
 	
 	method setGround(){
 		game.boardGround("fondo1.png")
@@ -131,7 +131,7 @@ object scenario {
 	}
 	
 	method dificulty(lvl){
-		dificulty = lvl
+		difficulty = lvl
 	}
 }
 
