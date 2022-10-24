@@ -43,9 +43,8 @@ object down {
 object engine {
 	method startSetting() {
 		game.title("HellHead") // HellFish
-		game.width(50)
-		game.height(25)  
-		game.cellSize(50)
+		game.width(25) // 1250px (Normal seria 1280px)
+		game.height(14) // 700px (Normal seria 720px) 
 		self.keysGeneral()
 	}
 	method keysSettingPlayer(player) {
@@ -82,18 +81,18 @@ object engine {
 
 // Scenario
 object scenario {
-	const playerBasePosition = game.at(1,20)
+	const playerBasePosition = game.at(1,12)
 	const bossBasePosition = game.at(game.center().x() + game.width() / 3, game.center().y() / 3)
 	var dificulty = 1
 	const enemys = []
 	const objetoDelEntorno = []
 	
-	const xMin = 1
-	const xMax = 49
-	const yMin = 1
-	const yMax = game.height() - game.height() / 10
+	const xMin = 0
+	const xMax = 24
+	const yMin = 0
+	const yMax = game.height() - game.height() / 40
 	
-	method estaEnLava(position) = (position.x().between(13, 50) && position.y().between(6, 9)) or (position.x().between(41, 50) && position.y().between(9, 25))
+	method estaEnLava(position) = (position.x().between(6, 25) && position.y().between(3, 5)) or (position.x().between(20, 25) && position.y().between(5, 14))
 	method estaAdentro(posicion) = self.limitX(posicion.x()) && self.limitY(posicion.y())
 	
 	method limitX(positionX) = positionX.between(xMin, xMax)
@@ -101,13 +100,16 @@ object scenario {
 	
 	method calculateBossLife() = random.natural(100, 300 * dificulty)
 	
-	method setGround(){
+	method background(){
 		game.boardGround("fondo_2.png")
 	}
 	
 	method load(){
-		self.setGround()
-		
+		self.background()
+		self.generateCharacters()		
+		}
+	
+	method generateCharacters(){		
 		const player = new Player(hp = 100, position = playerBasePosition, image = "Character.png", direccion = right)
 		if (dificulty == 3){
 			player.setWeapon(crazyWeapon)
@@ -119,9 +121,9 @@ object scenario {
 		player.loadHPBar()
 		
 		5.times({i=>self.agregarEnemigo(i-1)})
-		10.times({i=>self.agregarObjetoDelEntorno(i-1)})
-		}
-		
+		7.times({i=>self.agregarObjetoDelEntorno(i-1)})
+	}
+	
 	method agregarEnemigo(n){
 		enemys.add(new Enemy(hp=random.natural(50,200), position=self.randomPosition(), direccion = left, id = random.number().toString() )) 
 		enemys.get(n).spawn()
@@ -150,7 +152,7 @@ object scenario {
 	method removeEnemy(enemy) = enemys.remove(enemy) 
 	method ningunEnemigo() = enemys.isEmpty()
 	
-	method randomPosition() = game.at(random.natural(1,49),random.natural(1,24))
+	method randomPosition() = game.at(random.natural(1,24),random.natural(1,14))
 	
 	method positionNotInLava(){
 		const newPosition = self.randomPosition()
@@ -307,9 +309,9 @@ class Enemy inherits Character {
 	method randomImage(){image=random.lista(imagenesEnemys)}
 	
 	override method die(){
-		game.removeTickEvent("autoAttack"+id)
 		game.say(self, "D:")
-		game.schedule(1000, {game.removeVisual(self)})
+		game.schedule(100, {game.removeVisual(self)})
+		game.removeTickEvent("autoAttack"+id)
 		scenario.removeEnemy(self)
 		if(scenario.ningunEnemigo()) door.spawn()
 		}
@@ -346,7 +348,7 @@ class Player inherits Character {
 		
 	method goTo(dir) {
 		self.movimiento(dir)	
-		if(scenario.estaEnLava(dir.nextPosition(position)))self.die()
+		if(scenario.estaEnLava(self.position()))self.die()
 		if(dir.cual()=="derecha"){self.image("Character.png")
 			direccion = dir
 		}else{if(dir.cual()=="izquierda"){self.image("Character_Alter.png") 
@@ -502,7 +504,5 @@ class ObjetoDelEntorno {
 		self.randomImage()
 		game.addVisual(self)
 		game.onCollideDo(self, {algo => algo.chocar()})
-	}
-	
-		
+	}	
 }
