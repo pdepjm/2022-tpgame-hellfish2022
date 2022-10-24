@@ -22,7 +22,7 @@ class Character {
 	method setWeapon(newWeapon) {weapon = newWeapon}
 	method weapon() = weapon
 	
-	method die()
+	method die() { playScreen.levelCharacteristics().stopEvents() }
 	
 	method alive() = hp > 0
 	
@@ -55,12 +55,12 @@ class Character {
 }
 
 class Boss inherits Character {
-	const dificulty // Dificulty 1 2 3
+	const dificulty
 	
 	override method image() = "bosses/" + image + ".png"
 	
 	method start(){
-		game.onTick(200, "autoAttack", {self.autoAttack()})
+		game.onTick(250, "autoAttack", {self.autoAttack()})
 	}
 	
 	override method attack() {
@@ -76,6 +76,7 @@ class Boss inherits Character {
 	
 	// Life
 	override method die(){
+		super()
 		game.removeTickEvent("autoAttack")
 		game.say(self, "Volvere mas fuerte...")
 		game.schedule(5000, {
@@ -91,6 +92,7 @@ class Player inherits Character {
 	override method image() = "characters/" + super()
 		
 	override method die(){
+		super()
 		game.say(self, "Zzzzzz GG NO TEAM")
 		game.schedule(2000, {playScreen.levelCharacteristics().end()})
 	}
@@ -109,9 +111,9 @@ class Player inherits Character {
 	}
 	
 	method jump(){
-        if ( playScreen.estaAdentro(right.nextPosition(position.right(1))) ){
-            position = position.up(3).right(1)
-            game.schedule(300, {position = position.down(3).right(1)})
+        if ( playScreen.estaAdentro(right.nextPosition(orientation.nextPosition(position))) ){
+            position = orientation.nextPosition(position).up(3)
+            game.schedule(300, {position = orientation.nextPosition(position).down(3)})
         } else {
             position = position.up(3)
             game.schedule(300, {position = position.down(3)})

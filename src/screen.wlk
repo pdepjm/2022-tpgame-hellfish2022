@@ -184,6 +184,12 @@ class LevelCharacteristics {
 	}
 	
 	method specialActions()
+	
+	method stopEvents(){
+		buffRain.stop()
+		character1.setWeapon(noWeapon)
+		character2.setWeapon(noWeapon)
+	}
 }
 
 object level0 inherits LevelCharacteristics {
