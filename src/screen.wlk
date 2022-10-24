@@ -4,6 +4,7 @@ import engine.*
 import utils.*
 import characters.*
 import directions.*
+import buffs.*
 
 object screenManager {
 	var property actualScreen = menu
@@ -119,10 +120,10 @@ object endScreen inherits Screen {
 object playScreen inherits Screen {
 	var property levelCharacteristics = level1
 	
-	const xMin = game.width() / 10
-	const xMax = game.width() - game.width() / 10
-	const yMin = game.height() / 10
-	const yMax = game.height() - game.height() / 10
+	const property xMin = game.width() / 10
+	const property xMax = game.width() - game.width() / 10
+	const property yMin = game.height() / 10
+	const property yMax = game.height() - game.height() / 10
 
 	method estaAdentro(posicion) = self.limitX(posicion.x()) && self.limitY(posicion.y())
 	
@@ -175,6 +176,7 @@ class LevelCharacteristics {
 	
 	method load() {
 		self.generateCharacters()
+		buffRain.start()
 	}
 	
 	method end(){

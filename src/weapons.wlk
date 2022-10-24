@@ -5,7 +5,7 @@ import screen.*
 
 // Weapon and Bullet
 class Weapon {
-	const buff
+	var buff
 	const bulletType = fireball
 	
 	method calculateDamage() = bulletType.damage() * buff
@@ -20,6 +20,8 @@ class Weapon {
 		)
 		bullet.startPath()
 	}
+	
+	method addBuff(mount){ buff += mount }
 }
 
 object crazyWeapon inherits Weapon(buff = 5){
@@ -87,6 +89,8 @@ class Bullet {
 	}
 	
 	method win() {}
+	
+	method buffCrash(_) {}
 }
 
 object fireball {

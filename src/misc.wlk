@@ -34,4 +34,7 @@ class HPBar{
 	method hpLevel() = (15 * hp / hpMax).roundUp(0).min(15)
 	
 	method image() = "hpbar/HPBar" + self.hpLevel().toString() + ".png"
+	
+	method buffCrash(_) {}
+	method bulletCrash(_) {}
 }

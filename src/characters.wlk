@@ -20,6 +20,7 @@ class Character {
 	method hp() = hp
 	
 	method setWeapon(newWeapon) {weapon = newWeapon}
+	method weapon() = weapon
 	
 	method die()
 	
@@ -28,6 +29,8 @@ class Character {
 	method attack()
 	
 	method bulletCrash(damage) { self.removeLife(damage) }
+	
+	method buffCrash(buff) { buff.apply(self) }
 	
 	method removeLife(mount) {
 		hp = (hp - mount).max(0)
@@ -38,6 +41,8 @@ class Character {
 			// game.say(self, hp.toString())
 		}
 	}
+	
+	method addLife(mount) { hp += mount	}
 	
 	method win()
 	
@@ -56,7 +61,6 @@ class Boss inherits Character {
 	
 	method start(){
 		game.onTick(200, "autoAttack", {self.autoAttack()})
-		
 	}
 	
 	override method attack() {
