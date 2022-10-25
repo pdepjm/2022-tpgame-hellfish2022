@@ -102,19 +102,23 @@ object menu inherits Screen {
 }
 
 object endScreen inherits Screen {
-	override method show() {
-		// game.addVisual(new CenterMessage(message = "GAME END"))
-	}
+	override method show() {}
 	
-	override method setInputs() {
-		keyboard.enter().onPressDo{ self.backMenu() }
-	}
+	override method setInputs() { keyboard.enter().onPressDo({ self.backMenu() }) }
 	
 	override method background() = "menu/end_background.jpg"
 	
-	method backMenu() {
-		screenManager.switchScreen(menu)
-	}
+	method backMenu() { screenManager.switchScreen(menu) }
+}
+
+object lossScreen inherits Screen {
+	override method show() {}
+	
+	override method setInputs() { keyboard.enter().onPressDo({ self.backMenu() }) }
+	
+	override method background() = "menu/loss_background.jpg"
+	
+	method backMenu() { screenManager.switchScreen(menu) }
 }
 
 object playScreen inherits Screen {
@@ -164,6 +168,7 @@ class LevelCharacteristics {
 	const character2Position = game.at(game.center().x() + game.width() / 3, game.center().y() / 3)
 	var property character1 = null
 	var property character2 = null
+	var ending = false
 	
 	method levelNumber()
 	method background()
@@ -175,20 +180,28 @@ class LevelCharacteristics {
 	method generateCharacters()
 	
 	method load() {
+		ending = false
 		self.generateCharacters()
 		buffRain.start()
 	}
 	
 	method end(){
-		game.schedule(1000,{ screenManager.switchScreen(endScreen) })
+		if (character1.alive().negate()){
+			game.schedule(1000,{ screenManager.switchScreen(lossScreen) })
+		} else {
+			game.schedule(1000,{ screenManager.switchScreen(endScreen) })
+		}
 	}
 	
 	method specialActions()
 	
 	method stopEvents(){
-		buffRain.stop()
-		character1.setWeapon(noWeapon)
-		character2.setWeapon(noWeapon)
+		if (ending.negate()){
+			ending = true
+			buffRain.stop()
+			character1.setWeapon(noWeapon)
+			character2.setWeapon(noWeapon)
+		}
 	}
 }
 
@@ -207,6 +220,8 @@ object level0 inherits LevelCharacteristics {
 		character2.setWeapon(new Weapon(buff = 2))
 		character2.loadHPBar()
 	}
+	
+	override method end(){ game.schedule(1000,{ screenManager.switchScreen(endScreen) }) }
 	
 	override method specialActions() {}
 }
@@ -262,17 +277,18 @@ class LevelHistory inherits LevelCharacteristics {
 	
 	method selectionBackground() = mod.calculate(backgroundsCount, level)
 	method selectionBoss() = mod.calculate(bossesCount, level)
-	override method bossImage() = "bosses/BOSS" + self.selectionBoss().toString() + ".png"
 	
-	override method bossLife() = random.natural(100 * level, 300 * level)
+	override method bossImage() = "Boss" + self.selectionBoss().toString()
+	
+	override method bossLife() = random.natural(100 * level, 500 * level)
 	
 	override method generateCharacters() {
 		character1 = new Player(hp = 100 * level, position = character1Position, image = "Character", orientation = right)
-		character1.setWeapon(new Weapon(buff = 2 * level))
+		character1.setWeapon(new Weapon(buff = 1 * level))
 		character1.loadHPBar()
 		
 		character2 = new Boss(hp = self.bossLife(), position = character2Position, dificulty = self.levelNumber(), image = self.bossImage())
-		character2.setWeapon(new Weapon(buff = 5* level))
+		character2.setWeapon(new Weapon(buff = 1.1 * level))
 		character2.loadHPBar()
 	}
 	

@@ -5,7 +5,7 @@ import screen.*
 
 // Weapon and Bullet
 class Weapon {
-	var buff
+	var buff = 0
 	const bulletType = fireball
 	
 	method calculateDamage() = bulletType.damage() * buff
@@ -22,6 +22,7 @@ class Weapon {
 	}
 	
 	method addBuff(mount){ buff += mount }
+	method buff() = buff
 }
 
 object crazyWeapon inherits Weapon(buff = 5){
@@ -48,21 +49,26 @@ object noWeapon inherits Weapon(buff = 0){
 }
 
 class Bullet {
-	const damage
-	const orientation
 	const id
-	
 	const type
+	const damage
+	var property orientation
+	var reboundCount = 0
+	
 	var property position
 	
 	method image() = type.imageName() + orientation.letter() + ".png"
 	method position() = position
 	
+	method addRebound(mount) { reboundCount += mount }
+	method rebound() = reboundCount
+	
 	method startPath(){
 		game.addVisual(self)
 		game.onCollideDo(self, { something =>
 			something.bulletCrash(damage)
-			self.destroy()
+			type.specialAction(self)
+			// self.destroy()
 		})
 		game.onTick(20, self.unicID(), {self.move()})
 	}
@@ -95,5 +101,40 @@ class Bullet {
 
 object fireball {
 	method damage() = 10
+	method maxCollide() = 1
 	method imageName() = "bullets/Fireball"
+	method specialAction(bullet) {
+		bullet.addRebound(1)
+		if (self.maxCollide() <= bullet.rebound()){
+			bullet.destroy()
+		}
+	}
+}
+
+object cannonball {
+	method damage() = 10
+	method maxCollide() = 2
+	method imageName() = "bullets/Cannonball"
+	method specialAction(bullet) {
+		bullet.addRebound(1)
+		if (self.maxCollide() <= bullet.rebound()){
+			bullet.destroy()
+		} else {
+			bullet.orientation(bullet.orientation().invert())
+		}
+	}
+}
+
+object manaball {
+	method damage() = 10
+	method maxCollide() = 1
+	method imageName() = "bullets/Manaball"
+	method specialAction(bullet) {
+		bullet.addRebound(1)
+		if (self.maxCollide() <= bullet.rebound()){
+			bullet.destroy()
+		} else {
+			bullet.orientation(bullet.orientation().invert())
+		}
+	}
 }

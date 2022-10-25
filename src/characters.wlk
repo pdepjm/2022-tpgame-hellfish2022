@@ -37,8 +37,6 @@ class Character {
 		hpbar.removeLife(mount)
 		if (self.alive().negate()){
 			self.die()
-		} else {
-			// game.say(self, hp.toString())
 		}
 	}
 	
@@ -56,6 +54,7 @@ class Character {
 
 class Boss inherits Character {
 	const dificulty
+	var dying = false
 	
 	override method image() = "bosses/" + image + ".png"
 	
@@ -77,18 +76,22 @@ class Boss inherits Character {
 	// Life
 	override method die(){
 		super()
-		game.removeTickEvent("autoAttack")
-		game.say(self, "Volvere mas fuerte...")
-		game.schedule(5000, {
-			game.removeVisual(self)
-			door.spawn()
-		})
+		if (dying.negate()){
+			dying = true
+			game.removeTickEvent("autoAttack")
+			game.say(self, "Volvere mas fuerte...")
+			game.schedule(5000, {
+				game.removeVisual(self)
+				door.spawn()
+			})
+		}
 	}
 	
 	override method win() {}
 }
 
 class Player inherits Character {
+	var jumping = false
 	override method image() = "characters/" + super()
 		
 	override method die(){
@@ -111,12 +114,18 @@ class Player inherits Character {
 	}
 	
 	method jump(){
-        if ( playScreen.estaAdentro(right.nextPosition(orientation.nextPosition(position))) ){
+        if ( playScreen.estaAdentro(orientation.nextPosition(orientation.nextPosition(position))) and jumping.negate()){
+            jumping = true
             position = orientation.nextPosition(position).up(3)
-            game.schedule(300, {position = orientation.nextPosition(position).down(3)})
-        } else {
+            game.schedule(300, {
+            	position = orientation.nextPosition(position).down(3)
+            	jumping = false
+            })
+        } else if (jumping.negate()) {
             position = position.up(3)
-            game.schedule(300, {position = position.down(3)})
+            game.schedule(300, {
+            	position = position.down(3)
+            })
         }
     }
 	

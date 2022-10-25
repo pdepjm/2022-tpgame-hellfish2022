@@ -13,6 +13,9 @@ object door{
 		game.addVisual(self)
 		game.onCollideDo(self, {anything => anything.win()})
 	}
+	
+	method buffCrash(_) {}
+	method bulletCrash(_) {}
 }
 
 // HP Bar
