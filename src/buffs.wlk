@@ -100,29 +100,34 @@ class Buff {
 	method bulletCrash(_) {}
 }
 
-object heal {
-	method image() = "buffs/Buff1.png"
-	method apply(character){
+class BuffType {
+	method image()
+	method apply(character)
+}
+
+object heal inherits BuffType {
+	override method image() = "buffs/Buff1.png"
+	override method apply(character){
 		character.addLife(10)
 	}
 }
 
-object moreAttack {
-	method image() = "buffs/Buff2.png"
-	method apply(character){
+object moreAttack inherits BuffType {
+	override method image() = "buffs/Buff2.png"
+	override method apply(character){
 		character.weapon().addBuff(2)	
 	}
 }
 
-class AtarashiiWeapon {
+class AtarashiiWeapon inherits BuffType {
 	var property bulletType
-	method image() = bulletType.imageName() + down.letter() + ".png"
-	method apply(character){
+	override method image() = bulletType.imageName() + down.letter() + ".png"
+	override method apply(character){
 		character.setWeapon(new Weapon(buff = character.weapon().buff(), bulletType = bulletType))
 	}
 }
 
-object noBuff {
-	method image() = ""
-	method apply(character){}
+object noBuff inherits BuffType {
+	override method image() = ""
+	override method apply(character){}
 }

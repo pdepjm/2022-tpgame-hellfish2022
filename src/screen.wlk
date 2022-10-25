@@ -216,7 +216,7 @@ object level0 inherits LevelCharacteristics {
 		character1.setWeapon(new Weapon(buff = 2))
 		character1.loadHPBar()
 		
-		character2 = new Player(hp = 100, position = character2Position, image = "Character")
+		character2 = new Player(hp = 100, position = character2Position, image = "CharacterInverted")
 		character2.setWeapon(new Weapon(buff = 2))
 		character2.loadHPBar()
 	}

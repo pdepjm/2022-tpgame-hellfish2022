@@ -99,11 +99,18 @@ class Bullet {
 	method buffCrash(_) {}
 }
 
-object fireball {
-	method damage() = 10
-	method maxCollide() = 1
-	method imageName() = "bullets/Fireball"
-	method specialAction(bullet) {
+class BulletType {
+	method damage()
+	method maxCollide()
+	method imageName()
+	method specialAction(bullet)
+}
+
+object fireball inherits BulletType{
+	override method damage() = 10
+	override method maxCollide() = 1
+	override method imageName() = "bullets/Fireball"
+	override method specialAction(bullet) {
 		bullet.addRebound(1)
 		if (self.maxCollide() <= bullet.rebound()){
 			bullet.destroy()
@@ -111,11 +118,11 @@ object fireball {
 	}
 }
 
-object cannonball {
-	method damage() = 10
-	method maxCollide() = 2
-	method imageName() = "bullets/Cannonball"
-	method specialAction(bullet) {
+object cannonball inherits BulletType{
+	override method damage() = 20
+	override method maxCollide() = 2
+	override method imageName() = "bullets/Cannonball"
+	override method specialAction(bullet) {
 		bullet.addRebound(1)
 		if (self.maxCollide() <= bullet.rebound()){
 			bullet.destroy()
@@ -125,11 +132,11 @@ object cannonball {
 	}
 }
 
-object manaball {
-	method damage() = 10
-	method maxCollide() = 1
-	method imageName() = "bullets/Manaball"
-	method specialAction(bullet) {
+object manaball inherits BulletType{
+	override method damage() = 15
+	override method maxCollide() = 1
+	override method imageName() = "bullets/Manaball"
+	override method specialAction(bullet) {
 		bullet.addRebound(1)
 		if (self.maxCollide() <= bullet.rebound()){
 			bullet.destroy()
