@@ -8,6 +8,7 @@ import screen.*
 // Characters
 class Character {
 	var hp
+	const maxHp = hp
 	var weapon = noWeapon
 	var property position
 	var property image = null
@@ -34,13 +35,16 @@ class Character {
 	
 	method removeLife(mount) {
 		hp = (hp - mount).max(0)
-		hpbar.removeLife(mount)
+		hpbar.refresh(hp)
 		if (self.alive().negate()){
 			self.die()
 		}
 	}
 	
-	method addLife(mount) { hp += mount	}
+	method addLife(mount) { 
+		hp = maxHp.min(hp + mount)
+		hpbar.refresh(hp)
+	}
 	
 	method win()
 	
@@ -54,6 +58,7 @@ class Character {
 
 class Boss inherits Character {
 	const dificulty
+	
 	var dying = false
 	
 	override method image() = "bosses/" + image + ".png"
@@ -92,6 +97,7 @@ class Boss inherits Character {
 
 class Player inherits Character {
 	var jumping = false
+	
 	override method image() = "characters/" + super()
 		
 	override method die(){
@@ -107,14 +113,14 @@ class Player inherits Character {
 	
 
 	method goTo(dir) {
-		if( playScreen.estaAdentro(dir.nextPosition(position)) ){
+		if( playScreen.isInside(dir.nextPosition(position)) ){
 			orientation = dir
 			position = dir.nextPosition(position)
 		}
 	}
 	
 	method jump(){
-        if ( playScreen.estaAdentro(orientation.nextPosition(orientation.nextPosition(position))) and jumping.negate()){
+        if ( playScreen.isInside(orientation.nextPosition(orientation.nextPosition(position))) and jumping.negate()){
             jumping = true
             position = orientation.nextPosition(position).up(3)
             game.schedule(300, {

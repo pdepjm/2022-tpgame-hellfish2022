@@ -1,0 +1,147 @@
+@startuml
+object screenManager << object >>{
+actualScreen
+switchScreen(newScreen) 
+startScreen()
+}
+
+object background {
+position
+image
+position()
+}
+
+class LevelButton {
+level
+selected
+position
+image()
+levelNumber()
+selectionText()
+startLevel()
+}
+
+abstract class Screen {
+show()
+setInputs()
+background()
+}
+
+object menuScreen << object >>{
+selectedButtonNumber
+background()
+selectedButton()
+setInputs()
+limitBetweenListSize(list, number)
+selectChange(delta)
+buttons()
+show()
+}
+
+object endScreen << object >>{
+show()
+setInputs()
+background()
+backMenu()
+}
+
+object lossScreen << object >>{
+show()
+setInputs()
+background()
+backMenu()
+}
+
+object playScreen << object >>{
+levelCharacteristics
+xMin
+xMax
+yMin
+yMax
+isInside(position)
+limitX(positionX)
+limitY(positionY)
+show()
+levelNumber()
+background()
+setInputs()
+}
+
+abstract class LevelCharacteristics {
+character1Position
+character2Position
+character1
+character2
+ending
+levelNumber()
+background()
+bossLife()
+bossImage()
+generateCharacters()
+load()
+end()
+specialActions()
+stopEvents()
+}
+
+object level0 << object >>{
+levelNumber()
+background()
+bossLife()
+bossImage()
+generateCharacters()
+end()
+specialActions()
+}
+
+object level1 << object >>{
+levelNumber()
+background()
+bossLife()
+bossImage()
+generateCharacters()
+specialActions()
+}
+
+object level2 << object >>{
+levelNumber()
+background()
+bossLife()
+bossImage()
+generateCharacters()
+specialActions()
+}
+
+class LevelHistory{
+level
+backgroundsCount
+bossesCount
+levelNumber()
+background()
+selectionBackground()
+selectionBoss()
+bossImage()
+bossLife()
+generateCharacters()
+specialActions()
+end()
+}
+
+LevelCharacteristics <|.. LevelHistory
+LevelCharacteristics <|.. level0
+LevelCharacteristics <|.. level1
+LevelCharacteristics <|.. level2
+
+Screen <|-- endScreen
+Screen <|-- lossScreen
+Screen <|-- menuScreen
+Screen <|-- playScreen
+
+playScreen ---> LevelCharacteristics
+
+screenManager ---> Screen
+
+menuScreen ---> LevelButton
+
+LevelButton -r-> LevelCharacteristics
+@enduml

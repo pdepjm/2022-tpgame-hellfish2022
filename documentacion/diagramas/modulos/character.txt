@@ -1,0 +1,49 @@
+@startuml
+class Character {
+hp
+weapon
+position
+image
+hpbar
+orientation
+image()
+hp()
+setWeapon(newWeapon)
+weapon()
+die()
+alive()
+attack()
+bulletCrash(damage)
+buffCrash(buff)
+removeLife(mount)
+addLife(mount)
+win()
+loadHPBar()
+hpBarPosition()
+}
+
+class Boss{
+dificulty
+dying
+image()
+start()
+attack()
+autoAttack()
+die()
+win()
+}
+
+class Player{
+jumping
+image()
+die()
+attack()
+goTo(dir)
+jump()
+win()
+}
+
+Character <|-- Boss
+Character <|-- Player
+
+@enduml

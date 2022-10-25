@@ -21,16 +21,10 @@ object door{
 // HP Bar
 class HPBar{
 	var hp
-	var hpMax = 0
+	const hpMax = hp
 	const position
 	
-	method initialize(){
-		hpMax = hp
-	}
-	
-	method removeLife(mount){
-		hp = (hp - mount).max(0)
-	}
+	method refresh(newHp){ hp = newHp}
 	
 	method position() = position
 	

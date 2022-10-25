@@ -7,7 +7,7 @@ import directions.*
 import buffs.*
 
 object screenManager {
-	var property actualScreen = menu
+	var property actualScreen = menuScreen
 
 	method switchScreen(newScreen) {
 		game.clear()
@@ -42,7 +42,7 @@ class LevelButton {
 
 	method levelNumber() = level.levelNumber()
 
-	method selectionText() = if (menu.selectedButton().levelNumber() == level.levelNumber()) "H" else ""
+	method selectionText() = if (menuScreen.selectedButton().levelNumber() == level.levelNumber()) "H" else ""
 
 	method startLevel() {
 		playScreen.levelCharacteristics(level)
@@ -61,7 +61,7 @@ class Screen {
 
 }
 
-object menu inherits Screen {
+object menuScreen inherits Screen {
 	var selectedButtonNumber = 0
 
 	override method background() = "menu/menu_background.jpg"
@@ -108,7 +108,7 @@ object endScreen inherits Screen {
 	
 	override method background() = "menu/end_background.jpg"
 	
-	method backMenu() { screenManager.switchScreen(menu) }
+	method backMenu() { screenManager.switchScreen(menuScreen) }
 }
 
 object lossScreen inherits Screen {
@@ -118,7 +118,7 @@ object lossScreen inherits Screen {
 	
 	override method background() = "menu/loss_background.jpg"
 	
-	method backMenu() { screenManager.switchScreen(menu) }
+	method backMenu() { screenManager.switchScreen(menuScreen) }
 }
 
 object playScreen inherits Screen {
@@ -129,7 +129,7 @@ object playScreen inherits Screen {
 	const property yMin = game.height() / 10
 	const property yMax = game.height() - game.height() / 10
 
-	method estaAdentro(posicion) = self.limitX(posicion.x()) && self.limitY(posicion.y())
+	method isInside(position) = self.limitX(position.x()) && self.limitY(position.y())
 	
 	method limitX(positionX) = positionX.between(xMin, xMax)
 	method limitY(positionY) = positionY.between(yMin, yMax)
@@ -164,8 +164,8 @@ object playScreen inherits Screen {
 }
 
 class LevelCharacteristics {
-	const character1Position = game.at(game.center().x() - game.width() / 3, game.center().y() / 3)
-	const character2Position = game.at(game.center().x() + game.width() / 3, game.center().y() / 3)
+	const character1StartPosition = game.at(game.center().x() - game.width() / 3, game.center().y() / 3)
+	const character2StartPosition = game.at(game.center().x() + game.width() / 3, game.center().y() / 3)
 	var property character1 = null
 	var property character2 = null
 	var ending = false
@@ -212,11 +212,11 @@ object level0 inherits LevelCharacteristics {
 	override method bossImage() = ""
 	
 	override method generateCharacters(){
-		character1 = new Player(hp = 100, position = character1Position, image = "Character", orientation = right)
+		character1 = new Player(hp = 100, position = character1StartPosition, image = "Character", orientation = right)
 		character1.setWeapon(new Weapon(buff = 2))
 		character1.loadHPBar()
 		
-		character2 = new Player(hp = 100, position = character2Position, image = "CharacterInverted")
+		character2 = new Player(hp = 100, position = character2StartPosition, image = "CharacterInverted")
 		character2.setWeapon(new Weapon(buff = 2))
 		character2.loadHPBar()
 	}
@@ -233,11 +233,11 @@ object level1 inherits LevelCharacteristics {
 	override method bossImage() = "BOSS1"
 	
 	override method generateCharacters() {
-		character1 = new Player(hp = 100, position = character1Position, image = "Character", orientation = right)
+		character1 = new Player(hp = 100, position = character1StartPosition, image = "Character", orientation = right)
 		character1.setWeapon(new Weapon(buff = 2))
 		character1.loadHPBar()
 		
-		character2 = new Boss(hp = self.bossLife(), position = character2Position, dificulty = self.levelNumber(), image = self.bossImage())
+		character2 = new Boss(hp = self.bossLife(), position = character2StartPosition, dificulty = self.levelNumber(), image = self.bossImage())
 		character2.setWeapon(new Weapon(buff = 2))
 		character2.loadHPBar()
 	}
@@ -253,11 +253,11 @@ object level2 inherits LevelCharacteristics {
 	override method bossImage() = "BOSS2"
 	
 	override method generateCharacters() {
-		character1 = new Player(hp = 100, position = character1Position, image = "Character", orientation = right)
+		character1 = new Player(hp = 100, position = character1StartPosition, image = "Character", orientation = right)
 		character1.setWeapon(new Weapon(buff = 2))
 		character1.loadHPBar()
 		
-		character2 = new Boss(hp = self.bossLife(), position = character2Position, dificulty = self.levelNumber(), image = self.bossImage())
+		character2 = new Boss(hp = self.bossLife(), position = character2StartPosition, dificulty = self.levelNumber(), image = self.bossImage())
 		character2.setWeapon(new Weapon(buff = 5))
 		character2.loadHPBar()
 	}
@@ -283,11 +283,11 @@ class LevelHistory inherits LevelCharacteristics {
 	override method bossLife() = random.natural(100 * level, 500 * level)
 	
 	override method generateCharacters() {
-		character1 = new Player(hp = 100 * level, position = character1Position, image = "Character", orientation = right)
+		character1 = new Player(hp = 100 * level, position = character1StartPosition, image = "Character", orientation = right)
 		character1.setWeapon(new Weapon(buff = 1 * level))
 		character1.loadHPBar()
 		
-		character2 = new Boss(hp = self.bossLife(), position = character2Position, dificulty = self.levelNumber(), image = self.bossImage())
+		character2 = new Boss(hp = self.bossLife(), position = character2StartPosition, dificulty = self.levelNumber(), image = self.bossImage())
 		character2.setWeapon(new Weapon(buff = 1.1 * level))
 		character2.loadHPBar()
 	}

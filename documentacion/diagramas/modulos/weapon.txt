@@ -1,0 +1,86 @@
+@startuml
+class Weapon {
+buff
+bulletType
+calculateDamage()
+fire(startPosition, orientation)
+addBuff(mount)
+buff()
+}
+
+object crazyWeapon{
+fire(startPosition, orientation)
+randomDirection()
+}
+
+object noWeapon{
+fire(startPosition, orientation){}
+}
+
+class Bullet {
+id
+type
+damage
+orientation
+reboundCount
+position
+image()
+position()
+addRebound(mount)
+rebound()
+startPath()
+unicID()
+move()
+onLimits()
+destroy()
+bulletCrash(_)
+win()
+buffCrash(_)
+}
+
+interface BulletType {
+damage()
+specialAction(bullet)
+}
+
+object fireball << object >>{
+damage()
+maxCollide()
+imageName()
+specialAction(bullet)
+}
+
+object cannonball << object >>{
+damage()
+maxCollide()
+imageName()
+specialAction(bullet)
+}
+
+object manaball << object >>{
+damage()
+maxCollide()
+imageName()
+specialAction(bullet)
+}
+
+BulletType <|.. fireball
+BulletType <|.. cannonball
+BulletType <|.. manaball
+
+Bullet -d-> BulletType
+
+Weapon .r.> Bullet
+Weapon -d-> BulletType
+
+Weapon <|-u- crazyWeapon
+Weapon <|-u- noWeapon
+
+Bullet <... fireball
+Bullet <... cannonball
+Bullet <... manaball
+
+Weapon <... fireball
+Weapon <... cannonball
+Weapon <... manaball
+@enduml
