@@ -1,0 +1,170 @@
+@startuml
+object screenManager << object >>{
+actualScreen
+---
+switchScreen(newScreen) 
+startScreen()
+}
+
+class LevelButton {
+level
+selected
+---
+levelNumber()
+startLevel()
+}
+
+abstract class Screen {
+show()
+setInputs()
+background()
+}
+
+object menuScreen << object >>{
+selectedButtonNumber
+---
+show()
+setInputs()
+background()
+---
+selectedButton()
+selectChange(delta)
+buttons()
+}
+
+object playScreen << object >>{
+show()
+setInputs()
+background()
+---
+isInside(position)
+levelNumber()
+}
+
+abstract class LevelCharacteristics {
+character1
+character2
+levelNumber()
+background()
+bossLife()
+bossImage()
+generateCharacters()
+load()
+specialActions()
+}
+
+object level0 << object >>{
+levelNumber()
+background()
+bossLife()
+bossImage()
+generateCharacters()
+specialActions()
+}
+
+object level1 << object >>{
+levelNumber()
+background()
+bossLife()
+bossImage()
+generateCharacters()
+specialActions()
+}
+
+class LevelHistory{
+level
+---
+levelNumber()
+background()
+bossLife()
+bossImage()
+generateCharacters()
+specialActions()
+---
+selectionBackground()
+selectionBoss()
+}
+
+object buffRain << object >>{
+start()
+dropBuff()
+randomPosition()
+}
+
+class Buff {
+id
+type
+position
+startPath()
+}
+
+class Character {
+hp
+hpbar
+orientation
+attack()
+loadHPBar()
+}
+
+class Boss{
+dificulty
+start()
+attack()
+autoAttack()
+}
+
+class Player{
+attack()
+jump()
+}
+
+class Weapon {
+buff
+bulletType
+calculateDamage()
+fire(startPosition, orientation)
+}
+
+object crazyWeapon << object >>{
+fire(startPosition, orientation)
+randomDirection()
+}
+
+object noWeapon << object >>{
+fire(startPosition, orientation)
+}
+
+class HPBar{
+hp
+hpMax
+}
+
+buffRain -r-> Buff
+
+Character <|-- Boss
+Character <|-- Player
+
+LevelCharacteristics <|.. LevelHistory
+LevelCharacteristics <|.. level0
+LevelCharacteristics <|.. level1
+
+Screen <|-- menuScreen
+Screen <|-- playScreen
+
+playScreen ---> LevelCharacteristics
+
+screenManager -r-> Screen
+
+menuScreen ---> LevelButton
+
+LevelButton -r-> LevelCharacteristics
+
+Weapon <|-d- crazyWeapon
+Weapon <|-d- noWeapon
+
+Character -r-> Weapon
+Character -l-> HPBar
+
+LevelCharacteristics ---> Character
+LevelCharacteristics .r.> buffRain
+@enduml

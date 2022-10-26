@@ -1,0 +1,212 @@
+@startuml
+abstract class LevelCharacteristics {
+character1
+character2
+ending
+end()
+stopEvents()
+}
+
+object level0 << object >>{
+end()
+}
+
+object level1 << object >>{
+end()
+}
+
+object level2 << object >>{
+end()
+}
+
+class LevelHistory{
+level
+end()
+}
+
+
+class Character {
+hp
+weapon
+hpbar
+orientation
+die()
+attack()
+bulletCrash(damage)
+buffCrash(buff)
+removeLife(mount)
+addLife(mount)
+win()
+}
+
+class Boss{
+dying
+attack()
+die()
+win()
+}
+
+class Player{
+jumping
+attack()
+die()
+win()
+jump()
+}
+
+object buffRain << object >>{
+stop()
+dropBuff()
+randomPosition()
+}
+
+class Buff {
+id
+life
+type
+position
+startPath()
+move()
+reduceLife()
+destroy()
+buffCrash(buff)
+bulletCrash(bullet)
+}
+
+interface BuffType {
+apply(character)
+}
+
+object heal << object >>{
+apply(character)
+}
+
+object moreAttack << object >>{
+apply(character)
+}
+
+class AtarashiiWeapon << object >>{
+bulletType
+apply(character)
+}
+
+object noBuff << object >>{
+apply(character)
+}
+
+object door{
+spawn()
+buffCrash(buff)
+bulletCrash(bullet)
+}
+
+class HPBar{
+hp
+hpMax
+refresh(hp)
+buffCrash(buff)
+bulletCrash(bullet)
+}
+
+class Weapon {
+buff
+bulletType
+calculateDamage()
+fire(startPosition, orientation)
+addBuff(mount)
+}
+
+object crazyWeapon << object >>{
+fire(startPosition, orientation)
+randomDirection()
+}
+
+object noWeapon << object >>{
+fire(startPosition, orientation){}
+}
+
+class Bullet {
+id
+type
+damage
+orientation
+reboundCount
+rebound()
+startPath()
+move()
+destroy()
+}
+
+interface BulletType {
+damage()
+specialAction(bullet)
+}
+
+object fireball << object >>{
+damage()
+maxCollide()
+specialAction(bullet)
+}
+
+object cannonball << object >>{
+damage()
+maxCollide()
+specialAction(bullet)
+}
+
+object manaball << object >>{
+damage()
+maxCollide()
+specialAction(bullet)
+}
+
+BulletType <|.. fireball
+BulletType <|.. cannonball
+BulletType <|.. manaball
+
+Bullet -d-> BulletType
+
+Weapon .r.> Bullet
+Weapon -d-> BulletType
+
+Weapon <|-u- crazyWeapon
+Weapon <|-u- noWeapon
+
+Bullet <... fireball
+Bullet <... cannonball
+Bullet <... manaball
+
+Weapon <... fireball
+Weapon <... cannonball
+Weapon <... manaball
+
+
+Character -r-> HPBar
+Boss .l.> door
+Character -d-> Weapon
+
+LevelCharacteristics ---> Character
+LevelCharacteristics .r.> buffRain
+
+buffRain ---> Buff
+
+Buff ---> BuffType
+
+Buff <... heal 
+Buff <... moreAttack 
+Buff <... AtarashiiWeapon 
+Buff <... noBuff
+
+BuffType <|.. heal 
+BuffType <|.. moreAttack 
+BuffType <|.. AtarashiiWeapon 
+BuffType <|.. noBuff
+
+LevelCharacteristics <|.u. LevelHistory
+LevelCharacteristics <|.u. level0
+LevelCharacteristics <|.u. level1
+LevelCharacteristics <|.u. level2
+
+Character <|-- Boss
+Character <|-- Player
+@enduml

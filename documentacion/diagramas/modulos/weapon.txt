@@ -8,12 +8,12 @@ addBuff(mount)
 buff()
 }
 
-object crazyWeapon{
+object crazyWeapon << object >>{
 fire(startPosition, orientation)
 randomDirection()
 }
 
-object noWeapon{
+object noWeapon << object >>{
 fire(startPosition, orientation){}
 }
 
