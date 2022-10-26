@@ -31,7 +31,7 @@ El objetivo del juego es derrotar a todos los jefes que te aparezcan e ir avanza
 ### Menu
 Return ==> Salir del juego\
 Enter ==> Seleccionar modo de juego\
-↓ s ↑ w ==> Moverse entre botones\
+↓ s ↑ w ==> Moverse entre botones
 
 ### Modo PVP
 #### Jugador Izquierda
