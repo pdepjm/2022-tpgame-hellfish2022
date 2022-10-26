@@ -38,19 +38,19 @@ Enter ==> Seleccionar modo de juego\
 a ==> Moverse a la izquierda\
 d ==> Moverse a la derecha\
 s ==> Disparar\
-space ==> Saltar\
-\
+space ==> Saltar
+
 #### Jugador Derecha
 ← ==> Moverse a la izquierda\
 → ==> Moverse a la derecha\
 control ==> Disparar\
-↑ ==> Saltar\
+↑ ==> Saltar
 
 ### Modo Historia
 a ==> Moverse a la izquierda\
 d ==> Moverse a la derecha\
 s ==> Disparar\
-space ==> Saltar\
+space ==> Saltar
 
 ## Otros
 
