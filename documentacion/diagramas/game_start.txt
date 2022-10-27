@@ -144,9 +144,9 @@ buffRain -r-> Buff
 Character <|-- Boss
 Character <|-- Player
 
-LevelCharacteristics <|.. LevelHistory
-LevelCharacteristics <|.. level0
-LevelCharacteristics <|.. level1
+LevelCharacteristics <|-- LevelHistory
+LevelCharacteristics <|-- level0
+LevelCharacteristics <|-- level1
 
 Screen <|-- menuScreen
 Screen <|-- playScreen
