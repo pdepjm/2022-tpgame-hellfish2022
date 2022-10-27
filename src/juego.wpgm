@@ -1,9 +1,10 @@
 import wollok.game.*
-import allGame.*
+import engine.*
+import screen.*
 
 program juego {
 	engine.startSetting()
-	scenario.load()
-	// scenarioPVP.load()
+	screenManager.startScreen()
 	game.start()
 }
+ 
