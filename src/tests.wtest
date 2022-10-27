@@ -1,69 +1,68 @@
 import wollok.game.*
-import allGame.*
+import screen.*
+import engine.*
+import directions.*
+import buffs.*
+import weapons.*
 
-describe "Tests"{
-	const posicionInicialPlayer =  game.at(game.center().x() - game.width() / 3 - 3, game.center().y() / 3)
-	const posicionInicialBoss = game.at(game.center().x() + game.width() / 3, game.center().y() / 3)
-	const posicionPuerta = game.at(game.center().x() + game.width() / 3, game.center().y() / 3)
-	const arma = new Weapon(damage = 10, buff = 2)
-	const jugador = new Player(hpMax = 100,position = posicionInicialPlayer, weapon = arma)
-	const jefe = new Boss(hpMax = 25,position = posicionInicialBoss,dificulty = 1)
-	
-	
-	method configurar(){
-		game.clear()
-		scenario.load()
-		jugador.loadHPBar()
-		jefe.loadHPBar()
-		game.addVisual(jugador)
-		game.addVisual(jefe)
+describe "Test - Level" {
+	method initialize (){
+		engine.startSetting()
+		playScreen.show()
+		}
+	test "El origen (0,0) no se encuentra dentro del escenario"{
+		assert.notThat(playScreen.isInside(game.origin()))
+	}
+	test "El centro se encuentra dentro del escenario"{
+		assert.that(playScreen.isInside(game.center()))
+	}
+	test "Al intenta avanzar fuera del limite del scenario se mantiene la posicion"{
+		level1.character1().goTo(left)
+		const posicionInicialPlayer = level1.character1().position()
+		level1.character1().goTo(left)
+		assert.equals(posicionInicialPlayer,level1.character1().position())
+	}
+}
+
+describe "Test - Character"{
+	method initialize (){
+		playScreen.show()
 		engine.startSetting()
 	}
-	
-	test "El origen (0,0) no se encuentra dentro del escenario"{
-		assert.notThat(scenario.estaAdentro(game.origin()))
-	}
-	
-	test "El centro se encuentra dentro del escenario"{
-		assert.that(scenario.estaAdentro(game.center()))
-	}
-	
-	
-	test "La posicion se mantiene si se intenta avanzar fuera del limite del scenario"{
-		jugador.goTo(left)
-		assert.equals(posicionInicialPlayer,jugador.position())
-	}
-	
-	test "Se calcula correctamente el daño de un arma"{
-		assert.equals(20,arma.calculateDamage())
-	}
-	
-	
 	test "Recibir una bala disminuye la vida" {
-		self.configurar()
-		jugador.bulletCrash(40)
-		assert.equals(60,jugador.hp())
+		level1.character1().bulletCrash(40)
+		assert.equals(60,level1.character1().hp())
 	}
 	
 	test "Quitar toda la vida del jugador lo mata"{
-		self.configurar()
-		jugador.removeLife(100)
-		assert.notThat(jugador.alive())
+		level1.character1().removeLife(100)
+		assert.notThat(level1.character1().alive())
 	}
 	
 	test "Quitar toda la vida del jefe lo mata"{
-		self.configurar()
-		jefe.removeLife(30)
-		assert.notThat(jefe.alive())
+		level1.character2().removeLife(3000)
+		assert.notThat(level1.character2().alive())
 	}
-	
-	/*
-	test "La puerta aparece en la posicion correcta"{
-		self.configurar()
-		door.spawn()
-		assert.equals(posicionPuerta,door.position())
-	}
-	*/
 }
 
-
+describe "Test - Buff" {
+	method initialize (){
+		engine.startSetting()
+		playScreen.show()
+	}
+	test "Buff Heal agrega 50 de vida al personaje"{
+		level1.character1().removeLife(85)
+		heal.apply(level1.character1())
+		assert.equals(65, level1.character1().hp())
+	}
+	test "Buff moreAttack agrega 2 de potencia al arma del personaje"{
+		moreAttack.apply(level1.character1())
+		assert.equals(4, level1.character1().weapon().buff())
+	}
+	test "Buff AtarashiiWeapon modifica el arma del personaje personaje"{
+		const buffAtarashii = new AtarashiiWeapon(bulletType = manaball)
+		const originalWeapon = level1.character1().weapon()
+		buffAtarashii.apply(level1.character1())
+		assert.notEquals(originalWeapon, level1.character1().weapon())
+	}
+}
