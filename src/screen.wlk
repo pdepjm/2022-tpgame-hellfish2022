@@ -229,8 +229,8 @@ object level0 inherits LevelCharacteristics {
 object level1 inherits LevelCharacteristics {
 	override method levelNumber() = 1
 	override method background() = "levels/LEVEL1.jpg"
-	override method bossLife() = random.natural(500, 3000)
-	override method bossImage() = "BOSS1"
+	override method bossLife() = random.natural(200, 500)
+	override method bossImage() = "Boss1"
 	
 	override method generateCharacters() {
 		character1 = new Player(hp = 100, position = character1StartPosition, image = "Character", orientation = right)
@@ -250,7 +250,7 @@ object level2 inherits LevelCharacteristics {
 	override method levelNumber() = 2
 	override method background() = "levels/LEVEL2.jpg"
 	override method bossLife() = random.natural(1000, 5000)
-	override method bossImage() = "BOSS2"
+	override method bossImage() = "Boss2"
 	
 	override method generateCharacters() {
 		character1 = new Player(hp = 100, position = character1StartPosition, image = "Character", orientation = right)
