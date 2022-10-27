@@ -37,12 +37,12 @@ class LevelButton {
 	var property position = null
 
 	method image() {
-		return "menu/LEVEL" + level.levelNumber().toString() + self.selectionText() + ".png"
+		return "menu/LEVEL" + level.number().toString() + self.selectionText() + ".png"
 	}
 
-	method levelNumber() = level.levelNumber()
+	method levelNumber() = level.number()
 
-	method selectionText() = if (menuScreen.selectedButton().levelNumber() == level.levelNumber()) "H" else ""
+	method selectionText() = if (menuScreen.selectedButton().levelNumber() == level.number()) "H" else ""
 
 	method startLevel() {
 		playScreen.levelCharacteristics(level)
@@ -53,7 +53,7 @@ class LevelButton {
 
 class Screen {
 
-	method show()
+	method show(){}
 
 	method setInputs()
 
@@ -69,7 +69,7 @@ object menuScreen inherits Screen {
 	method selectedButton() = self.buttons().get(selectedButtonNumber)
 
 	override method setInputs() {
-		keyboard.backspace().onPressDo{ game.stop()}
+		keyboard.backspace().onPressDo{ game.stop() }
 		keyboard.enter().onPressDo{ self.selectedButton().startLevel()}
 		// levels
 		keyboard.down().onPressDo{ self.selectChange(1)}
@@ -87,12 +87,14 @@ object menuScreen inherits Screen {
 	}
 
 	method buttons() {
-		// return [ new LevelButton(level = level0), new LevelButton(level = level1), new LevelButton(level = level2) ]
-		return [ new LevelButton(level = level0), new LevelButton(level = level1), new LevelButton(level = new LevelHistory(level = 1)) ]
+		return [
+			new LevelButton(level = level0), 
+			new LevelButton(level = new LevelHistory())
+		]
 	}
 
 	override method show() {
-		var nextPosition = game.center().left(11).down(3)
+		var nextPosition = game.center().left(11).down(4)
 		self.buttons().forEach({ button =>
 			button.position(nextPosition)
 			game.addVisual(button)
@@ -102,37 +104,29 @@ object menuScreen inherits Screen {
 }
 
 object endScreen inherits Screen {
-	override method show() {}
-	
 	override method setInputs() { keyboard.enter().onPressDo({ self.backMenu() }) }
-	
 	override method background() = "menu/end_background.jpg"
-	
 	method backMenu() { screenManager.switchScreen(menuScreen) }
 }
 
 object lossScreen inherits Screen {
-	override method show() {}
-	
 	override method setInputs() { keyboard.enter().onPressDo({ self.backMenu() }) }
-	
 	override method background() = "menu/loss_background.jpg"
-	
 	method backMenu() { screenManager.switchScreen(menuScreen) }
 }
 
 object playScreen inherits Screen {
-	var property levelCharacteristics = level1
+	var property levelCharacteristics = level0
 	
-	const property xMin = game.width() / 10
-	const property xMax = game.width() - game.width() / 10
-	const property yMin = game.height() / 10
-	const property yMax = game.height() - game.height() / 10
+	method xMin() = game.width() / 10
+	method xMax() = game.width() - game.width() / 10
+	method yMin() = game.height() / 10
+	method yMax() = game.height() - game.height() / 10
 
 	method isInside(position) = self.limitX(position.x()) && self.limitY(position.y())
 	
-	method limitX(positionX) = positionX.between(xMin, xMax)
-	method limitY(positionY) = positionY.between(yMin, yMax)
+	method limitX(positionX) = positionX.between(self.xMin(), self.xMax())
+	method limitY(positionY) = positionY.between(self.yMin(), self.yMax())
 
 	override method show() {
 		levelCharacteristics.load()
@@ -141,7 +135,7 @@ object playScreen inherits Screen {
 		levelCharacteristics.specialActions()
 	}
 	
-	method levelNumber() = levelCharacteristics.levelNumber()
+	method levelNumber() = levelCharacteristics.number()
 
 	override method background() = levelCharacteristics.background()
 
@@ -153,7 +147,7 @@ object playScreen inherits Screen {
 		keyboard.space().onPressDo({levelCharacteristics.character1().jump()})
 		
 		// Para Player 2 en modo PVP
-		if (levelCharacteristics.bossLife() == 0){
+		if (self.isPVPLevel()){
 			keyboard.left().onPressDo({levelCharacteristics.character2().goTo(left)}) 
 			keyboard.right().onPressDo({levelCharacteristics.character2().goTo(right)}) 
 			keyboard.control().onPressDo({levelCharacteristics.character2().attack()})
@@ -161,23 +155,31 @@ object playScreen inherits Screen {
 		}
 	}
 
+	method isPVPLevel() = levelCharacteristics.bossLife() == 0	
+
 }
 
 class LevelCharacteristics {
-	const character1StartPosition = game.at(game.center().x() - game.width() / 3, game.center().y() / 3)
-	const character2StartPosition = game.at(game.center().x() + game.width() / 3, game.center().y() / 3)
 	var property character1 = null
 	var property character2 = null
+	var property number = 1
 	var ending = false
-	
-	method levelNumber()
-	method background()
+
+	method background() = "levels/LEVEL" + self.selectionBackground().toString() + ".jpg"
+	method selectionBackground() = number
 	
 	// No va a ser usado en los niveles PVP
-	method bossLife()
+	method bossLife() = random.natural(100 * number, 200 * number)
 	method bossImage()
 	
-	method generateCharacters()
+	method character1StartPosition() = game.at(game.center().x() - game.width() / 3, game.center().y() / 3)
+	method character2StartPosition() = game.at(game.center().x() + game.width() / 3, game.center().y() / 3)
+	
+	method generateCharacters() {
+		character1 = new Player(hp = 100, position = self.character1StartPosition(), image = "Character", orientation = right)
+		character1.setWeapon(new Weapon(buff = 2))
+		character1.loadHPBar()
+	}
 	
 	method load() {
 		ending = false
@@ -186,14 +188,18 @@ class LevelCharacteristics {
 	}
 	
 	method end(){
+		game.schedule(1000,{ screenManager.switchScreen(self.showLastScreen()) })
+	}
+	
+	method showLastScreen(){
 		if (character1.alive().negate()){
-			game.schedule(1000,{ screenManager.switchScreen(lossScreen) })
+			return lossScreen
 		} else {
-			game.schedule(1000,{ screenManager.switchScreen(endScreen) })
+			return endScreen
 		}
 	}
 	
-	method specialActions()
+	method specialActions() {}
 	
 	method stopEvents(){
 		if (ending.negate()){
@@ -205,90 +211,35 @@ class LevelCharacteristics {
 	}
 }
 
-object level0 inherits LevelCharacteristics {
-	override method levelNumber() = 0
-	override method background() = "levels/LEVEL0.jpg"
+object level0 inherits LevelCharacteristics(number = 0) {
 	override method bossLife() = 0
 	override method bossImage() = ""
 	
 	override method generateCharacters(){
-		character1 = new Player(hp = 100, position = character1StartPosition, image = "Character", orientation = right)
-		character1.setWeapon(new Weapon(buff = 2))
-		character1.loadHPBar()
-		
-		character2 = new Player(hp = 100, position = character2StartPosition, image = "CharacterInverted")
+		super()
+		character2 = new Player(hp = 100, position = self.character2StartPosition(), image = "CharacterInverted")
 		character2.setWeapon(new Weapon(buff = 2))
 		character2.loadHPBar()
 	}
 	
 	override method end(){ game.schedule(1000,{ screenManager.switchScreen(endScreen) }) }
-	
-	override method specialActions() {}
-}
-
-object level1 inherits LevelCharacteristics {
-	override method levelNumber() = 1
-	override method background() = "levels/LEVEL1.jpg"
-	override method bossLife() = random.natural(200, 500)
-	override method bossImage() = "Boss1"
-	
-	override method generateCharacters() {
-		character1 = new Player(hp = 100, position = character1StartPosition, image = "Character", orientation = right)
-		character1.setWeapon(new Weapon(buff = 2))
-		character1.loadHPBar()
-		
-		character2 = new Boss(hp = self.bossLife(), position = character2StartPosition, dificulty = self.levelNumber(), image = self.bossImage())
-		character2.setWeapon(new Weapon(buff = 2))
-		character2.loadHPBar()
-	}
-	override method specialActions() {
-		character2.start()
-	}
-}
-
-object level2 inherits LevelCharacteristics {
-	override method levelNumber() = 2
-	override method background() = "levels/LEVEL2.jpg"
-	override method bossLife() = random.natural(1000, 5000)
-	override method bossImage() = "Boss2"
-	
-	override method generateCharacters() {
-		character1 = new Player(hp = 100, position = character1StartPosition, image = "Character", orientation = right)
-		character1.setWeapon(new Weapon(buff = 2))
-		character1.loadHPBar()
-		
-		character2 = new Boss(hp = self.bossLife(), position = character2StartPosition, dificulty = self.levelNumber(), image = self.bossImage())
-		character2.setWeapon(new Weapon(buff = 5))
-		character2.loadHPBar()
-	}
-	override method specialActions() {
-		character2.start()
-	}
 }
 
 class LevelHistory inherits LevelCharacteristics {
-	var property level = 1
-	
 	const backgroundsCount = 3
 	const bossesCount = 2
 	
-	override method levelNumber() = 99
-	override method background() = "levels/LEVEL" + self.selectionBackground() + ".jpg"
-	
-	method selectionBackground() = mod.calculate(backgroundsCount, level)
-	method selectionBoss() = mod.calculate(bossesCount, level)
+	override method selectionBackground() = mod.calculate(backgroundsCount, number)
+	method selectionBoss() = mod.calculate(bossesCount, number)
 	
 	override method bossImage() = "Boss" + self.selectionBoss().toString()
 	
-	override method bossLife() = random.natural(100 * level, 200 * level)
+	override method bossLife() = random.natural(100 * number, 200 * number)
 	
 	override method generateCharacters() {
-		character1 = new Player(hp = 100 * level, position = character1StartPosition, image = "Character", orientation = right)
-		character1.setWeapon(new Weapon(buff = 1 * level))
-		character1.loadHPBar()
-		
-		character2 = new Boss(hp = self.bossLife(), position = character2StartPosition, dificulty = level, image = self.bossImage())
-		character2.setWeapon(new Weapon(buff = 1.1 * level))
+		super()
+		character2 = new Boss(hp = self.bossLife(), position = self.character2StartPosition(), dificulty = number, image = self.bossImage())
+		character2.setWeapon(new Weapon(buff = 1.1 * number))
 		character2.loadHPBar()
 	}
 	
@@ -299,7 +250,7 @@ class LevelHistory inherits LevelCharacteristics {
 	override method end(){
 		if (character1.alive()){
 			game.schedule(1000,{
-				playScreen.levelCharacteristics(new LevelHistory(level = playScreen.levelCharacteristics().level() + 1))
+				playScreen.levelCharacteristics(new LevelHistory(number = number + 1))
 				screenManager.switchScreen(playScreen)
 			})
 		} else {

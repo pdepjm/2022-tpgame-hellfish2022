@@ -90,7 +90,7 @@ class Boss inherits Character {
 			dying = true
 			game.removeTickEvent("autoAttack")
 			game.say(self, "Volvere mas fuerte...")
-			game.schedule(5000, {
+			game.schedule(3000, {
 				game.removeVisual(self)
 				door.spawn()
 			})

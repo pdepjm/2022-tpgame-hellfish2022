@@ -17,10 +17,10 @@ describe "Test - Level" {
 		assert.that(playScreen.isInside(game.center()))
 	}
 	test "Al intenta avanzar fuera del limite del scenario se mantiene la posicion"{
-		level1.character1().goTo(left)
-		const posicionInicialPlayer = level1.character1().position()
-		level1.character1().goTo(left)
-		assert.equals(posicionInicialPlayer,level1.character1().position())
+		level0.character1().goTo(left)
+		const posicionInicialPlayer = level0.character1().position()
+		level0.character1().goTo(left)
+		assert.equals(posicionInicialPlayer,level0.character1().position())
 	}
 }
 
@@ -30,18 +30,18 @@ describe "Test - Character"{
 		engine.startSetting()
 	}
 	test "Recibir una bala disminuye la vida" {
-		level1.character1().bulletCrash(40)
-		assert.equals(60,level1.character1().hp())
+		level0.character1().bulletCrash(40)
+		assert.equals(60,level0.character1().hp())
 	}
 	
 	test "Quitar toda la vida del jugador lo mata"{
-		level1.character1().removeLife(100)
-		assert.notThat(level1.character1().alive())
+		level0.character1().removeLife(100)
+		assert.notThat(level0.character1().alive())
 	}
 	
 	test "Quitar toda la vida del jefe lo mata"{
-		level1.character2().removeLife(3000)
-		assert.notThat(level1.character2().alive())
+		level0.character2().removeLife(3000)
+		assert.notThat(level0.character2().alive())
 	}
 }
 
@@ -51,18 +51,18 @@ describe "Test - Buff" {
 		playScreen.show()
 	}
 	test "Buff Heal agrega 50 de vida al personaje"{
-		level1.character1().removeLife(85)
-		heal.apply(level1.character1())
-		assert.equals(65, level1.character1().hp())
+		level0.character1().removeLife(85)
+		heal.apply(level0.character1())
+		assert.equals(65, level0.character1().hp())
 	}
 	test "Buff moreAttack agrega 2 de potencia al arma del personaje"{
-		moreAttack.apply(level1.character1())
-		assert.equals(4, level1.character1().weapon().buff())
+		moreAttack.apply(level0.character1())
+		assert.equals(4, level0.character1().weapon().buff())
 	}
 	test "Buff AtarashiiWeapon modifica el arma del personaje personaje"{
 		const buffAtarashii = new AtarashiiWeapon(bulletType = manaball)
-		const originalWeapon = level1.character1().weapon()
-		buffAtarashii.apply(level1.character1())
-		assert.notEquals(originalWeapon, level1.character1().weapon())
+		const originalWeapon = level0.character1().weapon()
+		buffAtarashii.apply(level0.character1())
+		assert.notEquals(originalWeapon, level0.character1().weapon())
 	}
 }
