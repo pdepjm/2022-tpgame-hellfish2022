@@ -280,14 +280,14 @@ class LevelHistory inherits LevelCharacteristics {
 	
 	override method bossImage() = "Boss" + self.selectionBoss().toString()
 	
-	override method bossLife() = random.natural(100 * level, 500 * level)
+	override method bossLife() = random.natural(100 * level, 200 * level)
 	
 	override method generateCharacters() {
 		character1 = new Player(hp = 100 * level, position = character1StartPosition, image = "Character", orientation = right)
 		character1.setWeapon(new Weapon(buff = 1 * level))
 		character1.loadHPBar()
 		
-		character2 = new Boss(hp = self.bossLife(), position = character2StartPosition, dificulty = self.levelNumber(), image = self.bossImage())
+		character2 = new Boss(hp = self.bossLife(), position = character2StartPosition, dificulty = level, image = self.bossImage())
 		character2.setWeapon(new Weapon(buff = 1.1 * level))
 		character2.loadHPBar()
 	}
