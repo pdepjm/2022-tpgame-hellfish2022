@@ -73,10 +73,15 @@ class Boss inherits Character {
 	
 	method autoAttack(){
 		const probability = random.natural(0, 100)
-		if (probability > 75.min(100 / dificulty)){
+		
+		if (probability > self.minProbabilityForAttack()){
 			self.attack()
 		} 
 	}
+	
+	method minProbabilityForAttack() = 60.min(self.canAttackFunction())
+	
+	method canAttackFunction() = (1.04 ** (- dificulty + 105) + 1).roundUp(0)
 	
 	// Life
 	override method die(){
