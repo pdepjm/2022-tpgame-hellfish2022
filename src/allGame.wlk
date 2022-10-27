@@ -2,11 +2,9 @@ import wollok.game.*
 
 // Utils
 object random {
-	const imagenesEnemys = ["enemy1.png","enemy2.png","enemy3.png","enemy4.png","enemy5.png"]
 	const direcciones = [left, right, up, down]
 	method natural(from, to) = from.randomUpTo(to).truncate(0)
 	method number() = self.natural(1, 10000000)
-	method imagenesEnemy() = imagenesEnemys.get(self.natural(0,imagenesEnemys.size())) 
 	method direccion() = direcciones.get(self.natural(0,direcciones.size()))
 	method lista(list) = list.get(self.natural(0,(list.size()-1))) 
 }
@@ -164,48 +162,6 @@ object scenario {
 	}
 }
 
-object scenarioPVP {
-	const playerBasePosition = game.at(game.center().x() - game.width() / 3, game.center().y() / 3)
-	const alterPlayerBasePosition = game.at(game.center().x() + game.width() / 3, game.center().y() / 3)
-	
-	const xMin = game.width() / 10
-	const xMax = game.width() - game.width() / 10
-	const yMin = game.height() / 10
-	const yMax = game.height() - game.height() / 10
-
-	method estaAdentro(posicion) = self.limitX(posicion.x()) && self.limitY(posicion.y())
-	
-	method limitX(positionX) = positionX.between(xMin, xMax)
-	method limitY(positionY) = positionY.between(yMin, yMax)
-	
-	method setGround(){
-		game.boardGround("fondo1.png")
-	}
-	
-	method load(){
-		self.setGround()
-		
-		const player = new Player(hp = 100, position = playerBasePosition, image = "Character.png",direccion=null)
-		player.setWeapon(new Weapon(damage = 10, buff = 2))
-		engine.keysSettingPlayer(player)
-		game.addVisual(player)
-		
-		const playerAlter = new Player(hp = 100, position = alterPlayerBasePosition, image = "Character_Alter.png",direccion=null)
-		playerAlter.setWeapon(new Weapon(damage = 10, buff = 2))
-		engine.keysSettingPlayerAlter(playerAlter)
-		game.addVisual(playerAlter)
-	}
-	
-	method end(){
-		game.schedule(1000,
-			{
-				game.clear()
-				game.addVisual(new CenterMessage(message = "GAME END"))
-			}
-		)
-	}
-}
-
 // Characters
 class Character {
 	var hp
@@ -261,42 +217,6 @@ class Character {
 	}
 	
 	method hpBarPosition() = game.at(position.x(), game.height() - game.height() / 10)
-}
-
-class Boss inherits Character {
-	const dificulty // Dificulty 1 2 3
-	
-	const bosses = ["Boss_1.png", "Boss_2.png"]
-	
-	method randomImage() {
-		image = bosses.get(random.natural(0, bosses.size() - 1))
-	}
-	
-	method start(){
-		game.onTick(750, "autoAttack", {self.autoAttack()})
-		
-	}
-	
-	override method attack() = weapon.fire(position.left(1), left)
-	
-	method autoAttack(){
-		const probability = random.natural(0, 100)
-		if (probability > 75.min(100 / dificulty)){
-			self.attack()
-		} 
-	}
-	
-	// Life
-	override method die(){
-		game.removeTickEvent("autoAttack")
-		game.say(self, "Volvere mas fuerte...")
-		game.schedule(5000, {
-			game.removeVisual(self)
-			door.spawn()
-		})
-	}
-	
-	override method win() {}
 }
 
 class Enemy inherits Character {
