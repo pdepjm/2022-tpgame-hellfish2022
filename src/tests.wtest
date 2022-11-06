@@ -1,6 +1,68 @@
+import wollok.game.*
+import screen.*
+import engine.*
+import directions.*
+import buffs.*
+import weapons.*
 
-test "testX" {
+describe "Test - Level" {
+	method initialize (){
+		engine.startSetting()
+		playScreen.show()
+		}
+	test "El origen (0,0) no se encuentra dentro del escenario"{
+		assert.notThat(playScreen.isInside(game.origin()))
+	}
+	test "El centro se encuentra dentro del escenario"{
+		assert.that(playScreen.isInside(game.center()))
+	}
+	test "Al intenta avanzar fuera del limite del scenario se mantiene la posicion"{
+		level0.character1().goTo(left)
+		const posicionInicialPlayer = level0.character1().position()
+		level0.character1().goTo(left)
+		assert.equals(posicionInicialPlayer,level0.character1().position())
+	}
+}
 
-	assert.that(true)
+describe "Test - Character"{
+	method initialize (){
+		playScreen.show()
+		engine.startSetting()
+	}
+	test "Recibir una bala disminuye la vida" {
+		level0.character1().bulletCrash(40)
+		assert.equals(60,level0.character1().hp())
+	}
+	
+	test "Quitar toda la vida del jugador lo mata"{
+		level0.character1().removeLife(100)
+		assert.notThat(level0.character1().alive())
+	}
+	
+	test "Quitar toda la vida del jefe lo mata"{
+		level0.character2().removeLife(3000)
+		assert.notThat(level0.character2().alive())
+	}
+}
 
+describe "Test - Buff" {
+	method initialize (){
+		engine.startSetting()
+		playScreen.show()
+	}
+	test "Buff Heal agrega 50 de vida al personaje"{
+		level0.character1().removeLife(85)
+		heal.apply(level0.character1())
+		assert.equals(65, level0.character1().hp())
+	}
+	test "Buff moreAttack agrega 2 de potencia al arma del personaje"{
+		moreAttack.apply(level0.character1())
+		assert.equals(4, level0.character1().weapon().buff())
+	}
+	test "Buff AtarashiiWeapon modifica el arma del personaje personaje"{
+		const buffAtarashii = new AtarashiiWeapon(bulletType = manaball)
+		const originalWeapon = level0.character1().weapon()
+		buffAtarashii.apply(level0.character1())
+		assert.notEquals(originalWeapon, level0.character1().weapon())
+	}
 }

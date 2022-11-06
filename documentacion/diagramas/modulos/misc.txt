@@ -1,0 +1,24 @@
+@startuml
+object door{
+position
+image()
+position()
+spawn()
+buffCrash(buff)
+bulletCrash(bullet)
+}
+
+class HPBar{
+hp
+hpMax
+position
+initialize()
+removeLife(mount)
+position()
+hpLevel()
+image()
+buffCrash(buff)
+bulletCrash(bullet)
+}
+
+@enduml

@@ -1,0 +1,65 @@
+@startuml
+object buffRain << object >>{
+start()
+stop()
+dropBuff()
+randomPosition()
+}
+
+class Buff {
+id
+life
+type
+position
+image()
+startPath()
+unicID()
+move()
+onLimits()
+onCharacterYPosition()
+reduceLife()
+destroy()
+buffCrash(buff)
+bulletCrash(bullet)
+}
+
+interface BuffType {
+image()
+apply(character)
+}
+
+object heal << object >>{
+image()
+apply(character)
+}
+
+object moreAttack << object >>{
+image()
+apply(character)
+}
+
+class AtarashiiWeapon << object >>{
+bulletType
+image()
+apply(character)
+}
+
+object noBuff << object >>{
+image()
+apply(character)
+}
+
+buffRain ---> Buff
+
+Buff ---> BuffType
+
+Buff <... heal 
+Buff <... moreAttack 
+Buff <... AtarashiiWeapon 
+Buff <... noBuff
+
+BuffType <|.. heal 
+BuffType <|.. moreAttack 
+BuffType <|.. AtarashiiWeapon 
+BuffType <|.. noBuff
+@enduml
