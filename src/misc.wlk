@@ -35,6 +35,7 @@ class HPBar{
 	
 	method buffCrash(_) {}
 	method bulletCrash(_) {}
+	method chocar() {}
 }
 
 class ObjetoDelEntorno {
@@ -53,12 +54,12 @@ class ObjetoDelEntorno {
 }
 
 object trapDoor{
-	var property position = null
-	var property image = null
+	var property position = game.at(20,1)
+	var property image = "trapdoor.png"
+	method win(){game.removeVisual(self)}
 	method bulletCrash(_){}
+	method chocar(){}
 	method spawn(){
-		position = game.at(20,1)
-		image = "trapdoor.png"
 		game.addVisual(self)
 		game.onCollideDo(self, {anything => anything.win()})
 	}

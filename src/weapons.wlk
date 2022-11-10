@@ -68,7 +68,6 @@ class Bullet {
 		game.onCollideDo(self, { something =>
 			something.bulletCrash(damage)
 			type.specialAction(self)
-			// self.destroy()
 		})
 		game.onTick(20, self.unicID(), {self.move()})
 	}
@@ -86,13 +85,11 @@ class Bullet {
 	method onLimits() = playScreen.levelCharacteristics().isInside(orientation.nextPosition(position))
 	
 	method destroy() {
-		game.removeTickEvent(self.unicID())
 		game.removeVisual(self)
+		game.removeTickEvent(self.unicID()) 
 	}
 	
-	method bulletCrash(_) {
-		self.destroy()
-	}
+	method bulletCrash(_) {}
 	
 	method win() {}
 	

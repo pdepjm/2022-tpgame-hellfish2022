@@ -171,11 +171,11 @@ class Enemy inherits Character {
 	method randomImage() {image = random.lista(imagenesEnemys)}
 	
 	override method die(){
-		game.say(self, "D:")
-		game.schedule(100, {game.removeVisual(self)})
+		game.schedule(75,{game.removeVisual(self)})
 		game.removeTickEvent("autoAttack"+id)
+		game.removeTickEvent("movimiento"+id)
 		lvlDungeon.removeEnemy(self)
-		if(lvlDungeon.ningunEnemigo()) trapDoor.spawn()
+		if(lvlDungeon.ningunEnemigo()) {trapDoor.spawn()}
 		}
 	method start(){
 		game.onTick(750, "autoAttack"+id, {self.attack()})
@@ -202,6 +202,7 @@ class Enemy inherits Character {
 }
 
 class PlayerDungeon inherits Character {
+	const frases = ["Casi abro los ojos", "Pero que facil", "A ver si se esfuerzan mas", "Habia enemigos??", "Que maletas que eran", "*Frase epica de victoria"]
 	override method die(){
 		hp = 0
 		super()
@@ -225,7 +226,8 @@ class PlayerDungeon inherits Character {
 	override method image() = image
 	override method win() {
 		game.removeVisual(self)
-		game.say(trapDoor, "GANE! SOY EL MEJOR!")
+		game.say(trapDoor, random.lista(frases))
 		game.schedule(1000, {lvlDungeon.end()})
 	}
+	method jump(){}
 }

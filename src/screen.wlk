@@ -30,6 +30,7 @@ object background {
 	var property image = null
 	
 	method position() = position
+	method bulletCrash(_){}
 }
 
 class LevelButton {
@@ -273,14 +274,14 @@ class LevelHistory inherits LevelCharacteristics {
 
 object lvlDungeon inherits LevelCharacteristics {
 	const playerBasePosition = game.at(0,0)
-	const enemys = []
-	const objetoDelEntorno = []
+	var objetoDelEntorno = []
+	var enemys = []
 	
 	override method xMin() = 0
 	override method xMax() = 24
 	override method yMin() = 0
 	override method yMax() = 13
-
+	override method isInside(position) = self.limitX(position.x()) && self.limitY(position.y())
 	method estaEnLava(position) = (position.x().between(6, 25) && position.y().between(3, 5)) or (position.x().between(20, 25) && position.y().between(5, 14))
 	
 	
@@ -291,7 +292,7 @@ object lvlDungeon inherits LevelCharacteristics {
 		}
 	
 	override method specialActions(){
-		5.times({i=>self.agregarEnemigo(i-1)})
+		4.times({i=>self.agregarEnemigo(i-1)})
 		7.times({i=>self.agregarObjetoDelEntorno(i-1)})
 	}
 	
@@ -301,6 +302,12 @@ object lvlDungeon inherits LevelCharacteristics {
 		character1.loadHPBar()
 		//self.playerKeys(character1)
 	}
+	
+	override method stopEvents(){
+		if (ending.negate()){
+			ending = true
+			character1.setWeapon(noWeapon)
+		}}
 	
 	method playerKeys(character){
 		keyboard.a().onPressDo({character.goTo(left)}) 
@@ -321,6 +328,8 @@ object lvlDungeon inherits LevelCharacteristics {
 	method dondeHayODE()= objetoDelEntorno.map({objeto=>objeto.position()})
 	
 	override method end(){
+		enemys = []
+		objetoDelEntorno = []
 		if(character1.alive().negate())super() else{
 		playScreen.levelCharacteristics(new LevelHistory(number = number + 2))
 		screenManager.switchScreen(playScreen)} 
@@ -329,13 +338,14 @@ object lvlDungeon inherits LevelCharacteristics {
 	method removeEnemy(enemy) = enemys.remove(enemy) 
 	method ningunEnemigo() = enemys.isEmpty()
 	
-	method randomPosition() = game.at(random.natural(1,24),random.natural(1,14))
+	method randomPosition() = game.at(random.natural(1,24),random.natural(1,12))
 	
 	method positionNotInLava(){
 		const newPosition = self.randomPosition()
 		 return (if(self.estaEnLava(newPosition))self.positionNotInLava() else newPosition)
 		}
 	override method bossImage(){}
+	
 }
 
 
